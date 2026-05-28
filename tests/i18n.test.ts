@@ -52,4 +52,20 @@ describe("i18n dictionaries", () => {
       }
     }
   });
+
+  it("navigation labelKey values resolve in both dictionaries", async () => {
+    const { navigation } = await import("@/config/navigation");
+    const keys: string[] = [];
+    for (const section of navigation) {
+      keys.push(section.labelKey);
+      for (const item of section.items) keys.push(item.labelKey);
+    }
+    for (const key of keys) {
+      for (const dict of [en, es]) {
+        const v = get(dict as unknown as Json, key);
+        expect(typeof v, `${key} missing`).toBe("string");
+        expect((v as string).length, `${key} empty`).toBeGreaterThan(0);
+      }
+    }
+  });
 });
