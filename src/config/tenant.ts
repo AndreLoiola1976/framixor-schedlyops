@@ -1,6 +1,8 @@
 import type { Tenant } from "@/types/tenant";
+import { defaultBranding } from "./theme";
 
 export const activeTenant: Tenant = {
+  branding: defaultBranding,
   id: "tenant_glow",
   name: "Glow Studio",
   slug: "glow-studio",

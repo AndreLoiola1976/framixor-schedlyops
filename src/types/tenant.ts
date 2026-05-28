@@ -1,3 +1,5 @@
+import type { Branding } from "./branding";
+
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
 export interface BusinessHours {
@@ -20,4 +22,5 @@ export interface Tenant {
   locale: string;
   logoInitials: string;
   hours: BusinessHours[];
+  branding?: Branding;
 }
