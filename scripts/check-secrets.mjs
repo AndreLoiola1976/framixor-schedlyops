@@ -13,7 +13,7 @@ const FORBIDDEN = [
   "STRIPE_SECRET_KEY",
 ];
 
-const EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
+const EXTS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".md", ".css"]);
 
 /** @type {Array<{file:string, name:string, line:number}>} */
 const hits = [];
