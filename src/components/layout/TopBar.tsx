@@ -5,6 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useT } from "@/i18n/useT";
 import { useTenant } from "@/hooks/useTenant";
 import { Separator } from "@/components/ui/separator";
+import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 
 export function TopBar() {
   const t = useT();
@@ -38,6 +39,7 @@ export function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-1.5 md:ml-0">
+        <LocaleSwitcher />
         <Button variant="ghost" size="icon" aria-label={t.topbar.notifications}>
           <Bell className="h-4 w-4" />
         </Button>

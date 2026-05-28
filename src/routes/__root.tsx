@@ -14,6 +14,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LocaleProvider } from "@/i18n/LocaleProvider";
 
 function NotFoundComponent() {
   return (
@@ -124,18 +125,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={150}>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <TopBar />
-            <main className="flex-1 bg-background">
-              <Outlet />
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
-        <Toaster />
-      </TooltipProvider>
+      <LocaleProvider>
+        <TooltipProvider delayDuration={150}>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <TopBar />
+              <main className="flex-1 bg-background">
+                <Outlet />
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+          <Toaster />
+        </TooltipProvider>
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }

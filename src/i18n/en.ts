@@ -143,6 +143,6 @@ export const en = {
     sat: "Saturday",
     sun: "Sunday",
   },
-} as const;
+};
 
 export type Dictionary = typeof en;
