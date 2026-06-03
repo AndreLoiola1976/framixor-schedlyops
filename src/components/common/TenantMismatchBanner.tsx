@@ -25,9 +25,9 @@ export function TenantMismatchBanner() {
         <div className="mx-auto flex max-w-7xl items-center gap-2">
           <Info className="h-4 w-4 shrink-0" />
           <span>
-            <strong>No tenant assigned.</strong> Your account isn&apos;t linked to a tenant yet.
-            Ask an admin to grant access to <strong>{TENANT_SLUG}</strong>. The app is read-only
-            until then.
+            <strong>No tenant assigned.</strong> Your account isn&apos;t linked to a tenant yet. Ask
+            an admin to grant access to <strong>{TENANT_SLUG}</strong>. The app is read-only until
+            then.
           </span>
         </div>
       </div>
