@@ -124,19 +124,32 @@ function RootComponent() {
       <LocaleProvider>
         <ThemeProvider>
           <TooltipProvider delayDuration={150}>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <TopBar />
-                <main className="flex-1 bg-background">
-                  <Outlet />
-                </main>
-              </SidebarInset>
-            </SidebarProvider>
+            <AuthGate>
+              <AppShell />
+            </AuthGate>
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>
       </LocaleProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname === "/auth") {
+    return <Outlet />;
+  }
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <TopBar />
+        <TenantMismatchBanner />
+        <main className="flex-1 bg-background">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
