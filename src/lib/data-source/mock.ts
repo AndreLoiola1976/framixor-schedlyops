@@ -29,7 +29,7 @@ function uid(prefix: string): string {
 }
 
 export const mockAdapter: DataSourceAdapter = {
-  async getTenant(): Promise<TenantInfo> {
+  async getTenant(): Promise<TenantInfo | null> {
     return { ...activeTenant, isLive: false, isActive: true };
   },
   async listServices() {
