@@ -8,7 +8,7 @@ import type { TenantInfo } from "@/lib/data-source/types";
 const fallback: TenantInfo = { ...activeTenant, isLive: false, isActive: true };
 
 export function useTenantQuery() {
-  return useQuery({
+  return useQuery<TenantInfo | null>({
     queryKey: qk.tenant,
     queryFn: () => dataSource.getTenant(),
     initialData: IS_SUPABASE ? undefined : fallback,
@@ -18,9 +18,9 @@ export function useTenantQuery() {
 }
 
 /**
- * Backwards-compatible: returns a Tenant object synchronously. In supabase
- * mode, before the query resolves, returns a placeholder so the UI doesn't
- * crash; the real value swaps in on resolve.
+ * Backwards-compatible: returns a Tenant object synchronously. When the user
+ * isn't linked to a tenant (supabase mode) we return the local placeholder so
+ * the UI doesn't crash — the banner surfaces the "No tenant assigned" state.
  */
 export function useTenant(): TenantInfo {
   const { data } = useTenantQuery();
