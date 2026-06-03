@@ -16,8 +16,11 @@ export const en = {
   topbar: {
     searchPlaceholder: "Search appointments, clients, services…",
     newAppointment: "New appointment",
+    newAppointmentDisabledTooltip:
+      "Booking creation lives in the public booking flow — not available in the operator pilot.",
     notifications: "Notifications",
     account: "Account",
+    signOut: "Sign out",
   },
   common: {
     active: "Active",
@@ -28,6 +31,9 @@ export const en = {
     cancel: "Cancel",
     edit: "Edit",
     add: "Add",
+    delete: "Delete",
+    disable: "Disable",
+    confirm: "Confirm",
     none: "None",
     today: "Today",
     upcoming: "Upcoming",
@@ -40,6 +46,7 @@ export const en = {
     when: "When",
     actions: "Actions",
     empty: "Nothing here yet",
+    saving: "Saving…",
   },
   status: {
     confirmed: "Confirmed",
@@ -51,6 +58,7 @@ export const en = {
   dashboard: {
     title: "Dashboard",
     subtitle: "Today at a glance",
+    previewBadge: "Preview Metrics (Client-side Derived)",
     revenueTitle: "Revenue this week",
     revenueSubtitle: "Bookings vs revenue, last 7 days",
     upcomingTitle: "Today's appointments",
@@ -62,6 +70,10 @@ export const en = {
       bookings: "Bookings",
       occupancy: "Occupancy",
       newClients: "New clients",
+      bookingsThisMonth: "Bookings this month",
+      upcoming: "Upcoming",
+      activeProfessionals: "Active professionals",
+      activeServices: "Active services",
     },
   },
   appointments: {
@@ -80,18 +92,49 @@ export const en = {
     title: "Services",
     subtitle: "Define what you offer",
     new: "New service",
+    create: "Create service",
+    edit: "Edit service",
+    disable: "Disable service",
+    disableConfirm: "Disable this service? It will be hidden from new bookings.",
     assignedPros: "Assigned professionals",
+    form: {
+      name: "Name",
+      durationMinutes: "Duration (minutes)",
+      priceCents: "Price (cents)",
+    },
   },
   professionals: {
     title: "Professionals",
     subtitle: "Your team and their schedules",
     new: "Add professional",
+    create: "Create professional",
+    edit: "Edit professional",
+    disable: "Disable professional",
+    disableConfirm: "Disable this professional? They will be hidden from new bookings.",
     services: "services",
     workingHours: "Working hours",
+    manageHours: "Manage hours",
+    form: {
+      name: "Name",
+    },
+  },
+  workingHours: {
+    title: "Working hours",
+    forProfessional: "Weekly schedule for {name}",
+    add: "Add window",
+    weekday: "Weekday",
+    opensAt: "Opens",
+    closesAt: "Closes",
+    slotMinutes: "Slot (min)",
+    empty: "No working hours yet. Add a window to start accepting bookings.",
+    delete: "Disable window",
   },
   clients: {
     title: "Clients",
-    subtitle: "Your customer directory",
+    subtitle: "Customer directory",
+    pilotBadge: "Pilot Feature — Not Yet Implemented",
+    pilotMessage:
+      "The operator pilot focuses on services, professionals, working hours, and bookings. A client directory will arrive in a later milestone — bookings currently surface customer name and phone inline.",
     new: "Add client",
     searchPlaceholder: "Search clients…",
     columns: {
@@ -142,6 +185,9 @@ export const en = {
     fri: "Friday",
     sat: "Saturday",
     sun: "Sunday",
+  },
+  weekday: {
+    short: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   },
 };
 

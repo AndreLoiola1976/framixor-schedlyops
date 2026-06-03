@@ -3,10 +3,13 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   Link,
 } from "@tanstack/react-router";
+import { AuthGate } from "@/components/auth/AuthGate";
+import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
 
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -85,14 +88,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "SchedlyOps is a modern scheduling workspace for beauty & wellness teams — manage appointments, services, professionals, and clients.",
       },
-      { property: "og:title", content: "SchedlyOps — Scheduling operations for service businesses" },
+      {
+        property: "og:title",
+        content: "SchedlyOps — Scheduling operations for service businesses",
+      },
       {
         property: "og:description",
         content: "Scheduling operations for modern service businesses.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "SchedlyOps — Scheduling operations for service businesses" },
+      {
+        name: "twitter:title",
+        content: "SchedlyOps — Scheduling operations for service businesses",
+      },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -124,19 +133,32 @@ function RootComponent() {
       <LocaleProvider>
         <ThemeProvider>
           <TooltipProvider delayDuration={150}>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <TopBar />
-                <main className="flex-1 bg-background">
-                  <Outlet />
-                </main>
-              </SidebarInset>
-            </SidebarProvider>
+            <AuthGate>
+              <AppShell />
+            </AuthGate>
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>
       </LocaleProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname === "/auth") {
+    return <Outlet />;
+  }
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <TopBar />
+        <TenantMismatchBanner />
+        <main className="flex-1 bg-background">
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

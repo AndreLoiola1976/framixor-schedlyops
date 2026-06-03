@@ -55,9 +55,7 @@ export function UpcomingAppointments() {
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className="text-xs font-medium tabular-nums">
-                    {formatTime(a.startISO)}
-                  </span>
+                  <span className="text-xs font-medium tabular-nums">{formatTime(a.startISO)}</span>
                   <StatusBadge status={a.status} />
                 </div>
               </li>

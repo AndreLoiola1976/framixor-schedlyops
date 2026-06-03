@@ -1,10 +1,16 @@
-import { appointments } from "@/config/appointments";
-import { useTenant } from "./useTenant";
+import { useQuery } from "@tanstack/react-query";
+import { dataSource } from "@/lib/data-source";
+import { qk } from "@/lib/query-keys";
+import type { Appointment } from "@/types/appointment";
 
-export function useAppointments() {
-  const tenant = useTenant();
-  return appointments
-    .filter((a) => a.tenantId === tenant.id)
-    .slice()
-    .sort((a, b) => a.startISO.localeCompare(b.startISO));
+export function useAppointmentsQuery() {
+  return useQuery({
+    queryKey: qk.bookings,
+    queryFn: () => dataSource.listBookings(),
+    initialData: [] as Appointment[],
+  });
+}
+
+export function useAppointments(): Appointment[] {
+  return useAppointmentsQuery().data;
 }

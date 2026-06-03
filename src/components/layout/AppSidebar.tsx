@@ -17,12 +17,14 @@ import { useTenant } from "@/hooks/useTenant";
 import { CalendarClock } from "lucide-react";
 
 function getNested(obj: unknown, path: string): string {
-  return path.split(".").reduce<unknown>((acc, k) => {
-    if (acc && typeof acc === "object" && k in (acc as Record<string, unknown>)) {
-      return (acc as Record<string, unknown>)[k];
-    }
-    return undefined;
-  }, obj) as string ?? path;
+  return (
+    (path.split(".").reduce<unknown>((acc, k) => {
+      if (acc && typeof acc === "object" && k in (acc as Record<string, unknown>)) {
+        return (acc as Record<string, unknown>)[k];
+      }
+      return undefined;
+    }, obj) as string) ?? path
+  );
 }
 
 export function AppSidebar() {
@@ -61,7 +63,11 @@ export function AppSidebar() {
                   const Icon = item.icon;
                   return (
                     <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton asChild isActive={isActive(item.to)} tooltip={getNested(t, item.labelKey)}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.to)}
+                        tooltip={getNested(t, item.labelKey)}
+                      >
                         <Link to={item.to}>
                           <Icon className="h-4 w-4" />
                           <span>{getNested(t, item.labelKey)}</span>

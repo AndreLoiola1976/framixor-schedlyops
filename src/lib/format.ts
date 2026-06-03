@@ -1,6 +1,10 @@
 import { activeTenant } from "@/config/tenant";
 
-export function formatCurrency(cents: number, currency = activeTenant.currency, locale = activeTenant.locale): string {
+export function formatCurrency(
+  cents: number,
+  currency = activeTenant.currency,
+  locale = activeTenant.locale,
+): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
