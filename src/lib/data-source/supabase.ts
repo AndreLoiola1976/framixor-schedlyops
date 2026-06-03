@@ -36,11 +36,24 @@ async function call<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 
 type TenantRow = { tenant_id: string; slug: string; name: string; is_active: boolean };
 
+function safeInitials(name: string | null | undefined): string {
+  if (!name) return "??";
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  return initials || "??";
+}
+
 function adaptTenant(row: TenantRow): TenantInfo {
+  const name = row?.name ?? "";
   return {
-    id: row.tenant_id,
-    name: row.name,
-    slug: row.slug,
+    id: row?.tenant_id ?? "",
+    name,
+    slug: row?.slug ?? "",
     industry: "",
     email: "",
     phone: "",
@@ -48,16 +61,10 @@ function adaptTenant(row: TenantRow): TenantInfo {
     timezone: "UTC",
     currency: "USD",
     locale: "en-US",
-    logoInitials:
-      row.name
-        .split(/\s+/)
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase() || "??",
+    logoInitials: safeInitials(name),
     hours: [],
     isLive: true,
-    isActive: row.is_active,
+    isActive: row?.is_active ?? false,
   };
 }
 
