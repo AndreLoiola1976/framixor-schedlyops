@@ -108,13 +108,7 @@ function adaptProfessional(row: ProfessionalRow, tenantId: string): Professional
     role: "",
     email: "",
     phone: "",
-    initials:
-      row.name
-        .split(/\s+/)
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase() || "?",
+    initials: safeInitials(row.name) === "??" ? "?" : safeInitials(row.name),
     specialties: [],
     workingDays: "",
     workingHours: "",
