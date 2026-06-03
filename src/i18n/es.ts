@@ -18,8 +18,11 @@ export const es: Dictionary = {
   topbar: {
     searchPlaceholder: "Buscar citas, clientes, servicios…",
     newAppointment: "Nueva cita",
+    newAppointmentDisabledTooltip:
+      "La creación de reservas vive en el flujo público — no está disponible en el piloto de operador.",
     notifications: "Notificaciones",
     account: "Cuenta",
+    signOut: "Cerrar sesión",
   },
   common: {
     active: "Activo",
@@ -30,6 +33,9 @@ export const es: Dictionary = {
     cancel: "Cancelar",
     edit: "Editar",
     add: "Añadir",
+    delete: "Eliminar",
+    disable: "Desactivar",
+    confirm: "Confirmar",
     none: "Ninguno",
     today: "Hoy",
     upcoming: "Próximas",
@@ -42,6 +48,7 @@ export const es: Dictionary = {
     when: "Cuándo",
     actions: "Acciones",
     empty: "Aún no hay nada aquí",
+    saving: "Guardando…",
   },
   status: {
     confirmed: "Confirmada",
@@ -53,6 +60,7 @@ export const es: Dictionary = {
   dashboard: {
     title: "Panel",
     subtitle: "Tu día de un vistazo",
+    previewBadge: "Métricas de vista previa (derivadas en el cliente)",
     revenueTitle: "Ingresos esta semana",
     revenueSubtitle: "Reservas vs. ingresos, últimos 7 días",
     upcomingTitle: "Citas de hoy",
@@ -64,6 +72,10 @@ export const es: Dictionary = {
       bookings: "Reservas",
       occupancy: "Ocupación",
       newClients: "Clientes nuevos",
+      bookingsThisMonth: "Reservas este mes",
+      upcoming: "Próximas",
+      activeProfessionals: "Profesionales activos",
+      activeServices: "Servicios activos",
     },
   },
   appointments: {
@@ -82,18 +94,49 @@ export const es: Dictionary = {
     title: "Servicios",
     subtitle: "Define lo que ofreces",
     new: "Nuevo servicio",
+    create: "Crear servicio",
+    edit: "Editar servicio",
+    disable: "Desactivar servicio",
+    disableConfirm: "¿Desactivar este servicio? Se ocultará de las nuevas reservas.",
     assignedPros: "Profesionales asignados",
+    form: {
+      name: "Nombre",
+      durationMinutes: "Duración (minutos)",
+      priceCents: "Precio (céntimos)",
+    },
   },
   professionals: {
     title: "Profesionales",
     subtitle: "Tu equipo y sus horarios",
     new: "Añadir profesional",
+    create: "Crear profesional",
+    edit: "Editar profesional",
+    disable: "Desactivar profesional",
+    disableConfirm: "¿Desactivar a este profesional? Se ocultará de las nuevas reservas.",
     services: "servicios",
     workingHours: "Horario laboral",
+    manageHours: "Gestionar horarios",
+    form: {
+      name: "Nombre",
+    },
+  },
+  workingHours: {
+    title: "Horario laboral",
+    forProfessional: "Horario semanal de {name}",
+    add: "Añadir franja",
+    weekday: "Día",
+    opensAt: "Abre",
+    closesAt: "Cierra",
+    slotMinutes: "Franja (min)",
+    empty: "Aún no hay horario. Añade una franja para empezar a recibir reservas.",
+    delete: "Desactivar franja",
   },
   clients: {
     title: "Clientes",
-    subtitle: "Tu directorio de clientes",
+    subtitle: "Directorio de clientes",
+    pilotBadge: "Función piloto — aún no implementada",
+    pilotMessage:
+      "El piloto de operador se centra en servicios, profesionales, horarios y reservas. El directorio de clientes llegará en un hito posterior — las reservas muestran el nombre y teléfono del cliente en línea.",
     new: "Añadir cliente",
     searchPlaceholder: "Buscar clientes…",
     columns: {
@@ -144,5 +187,8 @@ export const es: Dictionary = {
     fri: "Viernes",
     sat: "Sábado",
     sun: "Domingo",
+  },
+  weekday: {
+    short: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
   },
 };
