@@ -168,10 +168,27 @@ function adaptBooking(row: BookingRow, tenantId: string): Appointment {
   };
 }
 
+/**
+ * operator_current_tenant is a TABLE-returning RPC: PostgREST returns an array
+ * of rows (0 or 1 in practice). Treat empty array OR a `no_tenant_context`
+ * error as "user has no tenant assigned" rather than crashing.
+ */
+async function fetchTenantRow(): Promise<TenantRow | null> {
+  const { data, error } = await rpc<TenantRow | TenantRow[]>("operator_current_tenant");
+  if (error) {
+    if (error.message?.toLowerCase().includes("no_tenant_context")) return null;
+    throw new Error(error.message);
+  }
+  if (!data) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  return row ?? null;
+}
+
 let cachedTenantId: string | null = null;
 async function tenantId(): Promise<string> {
   if (cachedTenantId) return cachedTenantId;
-  const row = await call<TenantRow>("operator_current_tenant");
+  const row = await fetchTenantRow();
+  if (!row?.tenant_id) throw new Error("no_tenant_context");
   cachedTenantId = row.tenant_id;
   return cachedTenantId;
 }
@@ -181,8 +198,12 @@ export function resetTenantCache(): void {
 }
 
 export const supabaseAdapter: DataSourceAdapter = {
-  async getTenant(): Promise<TenantInfo> {
-    const row = await call<TenantRow>("operator_current_tenant");
+  async getTenant(): Promise<TenantInfo | null> {
+    const row = await fetchTenantRow();
+    if (!row?.tenant_id) {
+      cachedTenantId = null;
+      return null;
+    }
     cachedTenantId = row.tenant_id;
     return adaptTenant(row);
   },
