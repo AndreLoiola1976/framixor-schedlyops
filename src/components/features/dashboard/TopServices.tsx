@@ -25,10 +25,7 @@ export function TopServices() {
                 </span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${pct}%` }}
-                />
+                <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
               </div>
             </li>
           );

@@ -39,9 +39,7 @@ export function AppointmentFilters({ value, onChange }: AppointmentFiltersProps)
 
       <Select
         value={value.status}
-        onValueChange={(v) =>
-          onChange({ ...value, status: v as AppointmentFilterValue["status"] })
-        }
+        onValueChange={(v) => onChange({ ...value, status: v as AppointmentFilterValue["status"] })}
       >
         <SelectTrigger className="h-8 w-[160px] text-xs">
           <SelectValue />

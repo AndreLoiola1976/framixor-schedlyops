@@ -133,11 +133,7 @@ export function ProfessionalCard({ pro }: ProfessionalCardProps) {
         </CardContent>
       </Card>
 
-      <ProfessionalFormDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        professional={pro}
-      />
+      <ProfessionalFormDialog open={editOpen} onOpenChange={setEditOpen} professional={pro} />
       <WorkingHoursDialog open={hoursOpen} onOpenChange={setHoursOpen} professional={pro} />
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -148,10 +144,7 @@ export function ProfessionalCard({ pro }: ProfessionalCardProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => disable.mutate(pro.id)}
-              disabled={disable.isPending}
-            >
+            <AlertDialogAction onClick={() => disable.mutate(pro.id)} disabled={disable.isPending}>
               {t.common.confirm}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -12,7 +12,10 @@ export const Route = createFileRoute("/appointments")({
       { title: "Appointments — SchedlyOps" },
       { name: "description", content: "Manage upcoming and past appointments across your team." },
       { property: "og:title", content: "Appointments — SchedlyOps" },
-      { property: "og:description", content: "Manage upcoming and past appointments across your team." },
+      {
+        property: "og:description",
+        content: "Manage upcoming and past appointments across your team.",
+      },
     ],
   }),
   component: AppointmentsPage,

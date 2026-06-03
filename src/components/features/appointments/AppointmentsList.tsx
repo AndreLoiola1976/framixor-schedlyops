@@ -63,9 +63,7 @@ export function AppointmentsList() {
                 <h2 className="text-sm font-semibold text-foreground">
                   {formatLongDate(day + "T00:00:00")}
                 </h2>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  · {items.length}
-                </span>
+                <span className="text-xs text-muted-foreground tabular-nums">· {items.length}</span>
               </div>
               <Card className="overflow-hidden p-0">
                 <div className="grid grid-cols-12 gap-3 border-b border-border bg-muted/40 px-5 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">

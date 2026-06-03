@@ -10,10 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useT } from "@/i18n/useT";
-import {
-  useCreateProfessional,
-  useUpdateProfessional,
-} from "@/hooks/useSchedulingMutations";
+import { useCreateProfessional, useUpdateProfessional } from "@/hooks/useSchedulingMutations";
 import type { Professional } from "@/types/professional";
 
 interface Props {

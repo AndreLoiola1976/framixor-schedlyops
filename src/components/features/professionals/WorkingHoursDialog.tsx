@@ -138,9 +138,7 @@ export function WorkingHoursDialog({ open, onOpenChange, professional }: Props) 
               <Input
                 type="time"
                 value={draft.opensAt.slice(0, 5)}
-                onChange={(e) =>
-                  setDraft({ ...draft, opensAt: `${e.target.value}:00` })
-                }
+                onChange={(e) => setDraft({ ...draft, opensAt: `${e.target.value}:00` })}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -148,9 +146,7 @@ export function WorkingHoursDialog({ open, onOpenChange, professional }: Props) 
               <Input
                 type="time"
                 value={draft.closesAt.slice(0, 5)}
-                onChange={(e) =>
-                  setDraft({ ...draft, closesAt: `${e.target.value}:00` })
-                }
+                onChange={(e) => setDraft({ ...draft, closesAt: `${e.target.value}:00` })}
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -159,9 +155,7 @@ export function WorkingHoursDialog({ open, onOpenChange, professional }: Props) 
                 type="number"
                 min={1}
                 value={draft.slotMinutes}
-                onChange={(e) =>
-                  setDraft({ ...draft, slotMinutes: Number(e.target.value) })
-                }
+                onChange={(e) => setDraft({ ...draft, slotMinutes: Number(e.target.value) })}
               />
             </div>
             <div className="flex items-end">

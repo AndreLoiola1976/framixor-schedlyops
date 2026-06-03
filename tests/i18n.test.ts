@@ -12,10 +12,11 @@ function shape(node: Json): Json {
 }
 
 function get(dict: Json, path: string): Json | undefined {
-  return path.split(".").reduce<Json | undefined>(
-    (acc, k) => (acc && typeof acc === "object" ? (acc as Record<string, Json>)[k] : undefined),
-    dict as Json,
-  );
+  return path
+    .split(".")
+    .reduce<
+      Json | undefined
+    >((acc, k) => (acc && typeof acc === "object" ? (acc as Record<string, Json>)[k] : undefined), dict as Json);
 }
 
 describe("i18n dictionaries", () => {

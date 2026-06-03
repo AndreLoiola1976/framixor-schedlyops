@@ -88,14 +88,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "SchedlyOps is a modern scheduling workspace for beauty & wellness teams — manage appointments, services, professionals, and clients.",
       },
-      { property: "og:title", content: "SchedlyOps — Scheduling operations for service businesses" },
+      {
+        property: "og:title",
+        content: "SchedlyOps — Scheduling operations for service businesses",
+      },
       {
         property: "og:description",
         content: "Scheduling operations for modern service businesses.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "SchedlyOps — Scheduling operations for service businesses" },
+      {
+        name: "twitter:title",
+        content: "SchedlyOps — Scheduling operations for service businesses",
+      },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

@@ -14,7 +14,12 @@ interface AppointmentRowProps {
   professional?: Professional;
 }
 
-export function AppointmentRow({ appointment, client, service, professional }: AppointmentRowProps) {
+export function AppointmentRow({
+  appointment,
+  client,
+  service,
+  professional,
+}: AppointmentRowProps) {
   return (
     <div className="grid grid-cols-12 items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40">
       <div className="col-span-2 flex flex-col">

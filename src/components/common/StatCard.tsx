@@ -22,9 +22,7 @@ export function StatCard({ label, value, deltaPercent, hint }: StatCardProps) {
             <span
               className={cn(
                 "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-medium",
-                positive
-                  ? "bg-success/10 text-success"
-                  : "bg-destructive/10 text-destructive",
+                positive ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive",
               )}
             >
               {positive ? (

@@ -1,4 +1,12 @@
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { SectionCard } from "@/components/common/SectionCard";
 import { useDashboardMetrics } from "@/hooks/useDashboardMetrics";
 import { useT } from "@/i18n/useT";

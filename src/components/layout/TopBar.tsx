@@ -33,11 +33,7 @@ export function TopBar() {
 
       <div className="relative ml-auto hidden w-full max-w-sm md:block">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder={t.topbar.searchPlaceholder}
-          className="h-9 pl-8"
-        />
+        <Input type="search" placeholder={t.topbar.searchPlaceholder} className="h-9 pl-8" />
       </div>
 
       <div className="ml-auto flex items-center gap-1.5 md:ml-0">

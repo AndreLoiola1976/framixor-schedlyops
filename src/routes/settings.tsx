@@ -12,7 +12,10 @@ export const Route = createFileRoute("/settings")({
       { title: "Settings — SchedlyOps" },
       { name: "description", content: "Workspace, branding, and business profile settings." },
       { property: "og:title", content: "Settings — SchedlyOps" },
-      { property: "og:description", content: "Workspace, branding, and business profile settings." },
+      {
+        property: "og:description",
+        content: "Workspace, branding, and business profile settings.",
+      },
     ],
   }),
   component: SettingsPage,
