@@ -15,9 +15,7 @@ function readString(name: string): string {
 
 const dataSourceRaw = readString("VITE_DATA_SOURCE") || "mock";
 if (dataSourceRaw !== "mock" && dataSourceRaw !== "supabase") {
-  throw new Error(
-    `Invalid VITE_DATA_SOURCE="${dataSourceRaw}". Must be "mock" or "supabase".`,
-  );
+  throw new Error(`Invalid VITE_DATA_SOURCE="${dataSourceRaw}". Must be "mock" or "supabase".`);
 }
 export const DATA_SOURCE: DataSource = dataSourceRaw;
 

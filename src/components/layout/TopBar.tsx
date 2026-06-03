@@ -1,11 +1,14 @@
-import { Bell, Plus, Search } from "lucide-react";
+import { Bell, LogOut, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useT } from "@/i18n/useT";
 import { useTenant } from "@/hooks/useTenant";
 import { Separator } from "@/components/ui/separator";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
+import { IS_SUPABASE } from "@/lib/env";
+import { signOut } from "@/hooks/useSession";
 
 export function TopBar() {
   const t = useT();
@@ -16,7 +19,6 @@ export function TopBar() {
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="h-5" />
 
-      {/* Tenant switcher placeholder (disabled) */}
       <button
         type="button"
         disabled
@@ -31,11 +33,7 @@ export function TopBar() {
 
       <div className="relative ml-auto hidden w-full max-w-sm md:block">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder={t.topbar.searchPlaceholder}
-          className="h-9 pl-8"
-        />
+        <Input type="search" placeholder={t.topbar.searchPlaceholder} className="h-9 pl-8" />
       </div>
 
       <div className="ml-auto flex items-center gap-1.5 md:ml-0">
@@ -43,10 +41,30 @@ export function TopBar() {
         <Button variant="ghost" size="icon" aria-label={t.topbar.notifications}>
           <Bell className="h-4 w-4" />
         </Button>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span tabIndex={0}>
+              <Button size="sm" className="gap-1.5 pointer-events-none opacity-60" disabled>
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs text-xs">
+            {t.topbar.newAppointmentDisabledTooltip}
+          </TooltipContent>
+        </Tooltip>
+        {IS_SUPABASE ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.topbar.signOut}
+            title={t.topbar.signOut}
+            onClick={() => void signOut()}
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        ) : null}
       </div>
     </header>
   );

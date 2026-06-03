@@ -15,10 +15,15 @@ import type {
 } from "./types";
 
 function rpc<T = unknown>(fn: string, args?: Record<string, unknown>) {
-  return getSupabase()
-    .schema("scheduling")
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .rpc(fn as any, args as any) as unknown as Promise<{ data: T | null; error: { message: string } | null }>;
+  return (
+    getSupabase()
+      .schema("scheduling")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .rpc(fn as any, args as any) as unknown as Promise<{
+      data: T | null;
+      error: { message: string } | null;
+    }>
+  );
 }
 
 async function call<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
@@ -43,12 +48,13 @@ function adaptTenant(row: TenantRow): TenantInfo {
     timezone: "UTC",
     currency: "USD",
     locale: "en-US",
-    logoInitials: row.name
-      .split(/\s+/)
-      .map((p) => p[0])
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "??",
+    logoInitials:
+      row.name
+        .split(/\s+/)
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || "??",
     hours: [],
     isLive: true,
     isActive: row.is_active,

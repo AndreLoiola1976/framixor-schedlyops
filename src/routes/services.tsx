@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { ServicesGrid } from "@/components/features/services/ServicesGrid";
+import { ServiceFormDialog } from "@/components/features/services/ServiceFormDialog";
 import { useT } from "@/i18n/useT";
 
 export const Route = createFileRoute("/services")({
@@ -19,19 +21,21 @@ export const Route = createFileRoute("/services")({
 
 function ServicesPage() {
   const t = useT();
+  const [open, setOpen] = useState(false);
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
       <PageHeader
         title={t.services.title}
         subtitle={t.services.subtitle}
         actions={
-          <Button size="sm" className="gap-1.5">
+          <Button size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4" />
             {t.services.new}
           </Button>
         }
       />
       <ServicesGrid />
+      <ServiceFormDialog open={open} onOpenChange={setOpen} />
     </div>
   );
 }
