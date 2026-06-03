@@ -3,10 +3,13 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   Link,
 } from "@tanstack/react-router";
+import { AuthGate } from "@/components/auth/AuthGate";
+import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
 
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
