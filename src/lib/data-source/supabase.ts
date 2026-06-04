@@ -169,18 +169,65 @@ function adaptBooking(row: BookingRow, tenantId: string): Appointment {
 }
 
 /**
- * operator_current_tenant is a TABLE-returning RPC: PostgREST returns an array
- * of rows (0 or 1 in practice). Treat empty array OR a `no_tenant_context`
- * error as "user has no tenant assigned" rather than crashing.
+ * operator_current_tenant is a TABLE-returning RPC: PostgREST returns an
+ * array (0 or 1 rows). Empty array OR a `no_tenant_context` error means
+ * "authenticated but not linked to a tenant" — a valid state, not an error.
+ * Reserve thrown errors for real RPC/network/permission failures.
  */
+export type TenantDiagnostic = {
+  at: string;
+  raw: unknown;
+  rawCount: number | null;
+  error: string | null;
+  reason: "OK" | "NO_TENANT_LINK" | "RPC_ERROR" | "PENDING";
+};
+
+let lastTenantDiagnostic: TenantDiagnostic = {
+  at: new Date().toISOString(),
+  raw: null,
+  rawCount: null,
+  error: null,
+  reason: "PENDING",
+};
+
+export function getLastTenantDiagnostic(): TenantDiagnostic {
+  return lastTenantDiagnostic;
+}
+
 async function fetchTenantRow(): Promise<TenantRow | null> {
   const { data, error } = await rpc<TenantRow | TenantRow[]>("operator_current_tenant");
+  const rawCount = Array.isArray(data) ? data.length : data ? 1 : 0;
+
   if (error) {
-    if (error.message?.toLowerCase().includes("no_tenant_context")) return null;
-    throw new Error(error.message);
+    const msg = error.message ?? "unknown rpc error";
+    if (msg.toLowerCase().includes("no_tenant_context")) {
+      lastTenantDiagnostic = {
+        at: new Date().toISOString(),
+        raw: data,
+        rawCount,
+        error: null,
+        reason: "NO_TENANT_LINK",
+      };
+      return null;
+    }
+    lastTenantDiagnostic = {
+      at: new Date().toISOString(),
+      raw: data,
+      rawCount,
+      error: msg,
+      reason: "RPC_ERROR",
+    };
+    throw new Error(msg);
   }
-  if (!data) return null;
+
   const row = Array.isArray(data) ? data[0] : data;
+  lastTenantDiagnostic = {
+    at: new Date().toISOString(),
+    raw: data,
+    rawCount,
+    error: null,
+    reason: row?.tenant_id ? "OK" : "NO_TENANT_LINK",
+  };
   return row ?? null;
 }
 
@@ -196,6 +243,7 @@ async function tenantId(): Promise<string> {
 export function resetTenantCache(): void {
   cachedTenantId = null;
 }
+
 
 export const supabaseAdapter: DataSourceAdapter = {
   async getTenant(): Promise<TenantInfo | null> {
