@@ -12,7 +12,6 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
 import { DevDiagnostics } from "@/components/common/DevDiagnostics";
 
-
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -141,7 +140,6 @@ function RootComponent() {
             <Toaster />
             <DevDiagnostics />
           </TooltipProvider>
-
         </ThemeProvider>
       </LocaleProvider>
     </QueryClientProvider>

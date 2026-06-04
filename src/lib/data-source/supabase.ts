@@ -244,7 +244,6 @@ export function resetTenantCache(): void {
   cachedTenantId = null;
 }
 
-
 export const supabaseAdapter: DataSourceAdapter = {
   async getTenant(): Promise<TenantInfo | null> {
     const row = await fetchTenantRow();

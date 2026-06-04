@@ -7,4 +7,3 @@ export const dataSource: DataSourceAdapter = IS_SUPABASE ? supabaseAdapter : moc
 
 export { resetTenantCache, getLastTenantDiagnostic };
 export type * from "./types";
-

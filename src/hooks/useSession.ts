@@ -42,11 +42,7 @@ export function useSession(): SessionState {
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event !== "SIGNED_IN" &&
-        event !== "SIGNED_OUT" &&
-        event !== "USER_UPDATED"
-      ) {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") {
         // Ignore TOKEN_REFRESHED / INITIAL_SESSION churn.
         setState({ loading: false, session });
         return;
