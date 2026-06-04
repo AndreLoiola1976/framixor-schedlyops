@@ -1,9 +1,10 @@
 import { IS_SUPABASE } from "@/lib/env";
 import { mockAdapter } from "./mock";
-import { supabaseAdapter, resetTenantCache } from "./supabase";
+import { supabaseAdapter, resetTenantCache, getLastTenantDiagnostic } from "./supabase";
 import type { DataSourceAdapter } from "./types";
 
 export const dataSource: DataSourceAdapter = IS_SUPABASE ? supabaseAdapter : mockAdapter;
 
-export { resetTenantCache };
+export { resetTenantCache, getLastTenantDiagnostic };
 export type * from "./types";
+
