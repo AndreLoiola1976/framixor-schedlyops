@@ -10,6 +10,8 @@ import {
 } from "@tanstack/react-router";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
+import { DevDiagnostics } from "@/components/common/DevDiagnostics";
+
 
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -137,7 +139,9 @@ function RootComponent() {
               <AppShell />
             </AuthGate>
             <Toaster />
+            <DevDiagnostics />
           </TooltipProvider>
+
         </ThemeProvider>
       </LocaleProvider>
     </QueryClientProvider>

@@ -1,11 +1,17 @@
 import { TENANT_SLUG, IS_SUPABASE } from "@/lib/env";
 import { useTenantQuery } from "@/hooks/useTenant";
+import { useSession } from "@/hooks/useSession";
 import { AlertTriangle, Info } from "lucide-react";
 
 export function TenantMismatchBanner() {
-  const { data, isError, error, isLoading } = useTenantQuery();
+  const { loading: sessionLoading, session } = useSession();
+  const { data, isError, error, isLoading, fetchStatus } = useTenantQuery();
   if (!IS_SUPABASE) return null;
-  if (isLoading) return null;
+  // Don't flash "No tenant assigned" while auth is still booting or query is
+  // gated/in-flight.
+  if (sessionLoading) return null;
+  if (!session) return null;
+  if (isLoading || fetchStatus === "fetching") return null;
 
   if (isError) {
     return (
@@ -18,7 +24,6 @@ export function TenantMismatchBanner() {
     );
   }
 
-  // No tenant linked to the signed-in user.
   if (!data || !data.isLive || !data.id) {
     return (
       <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-900 dark:text-amber-200">
