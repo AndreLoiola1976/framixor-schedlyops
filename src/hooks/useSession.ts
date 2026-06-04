@@ -4,11 +4,22 @@ import type { Session } from "@supabase/supabase-js";
 import { IS_SUPABASE } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
 import { resetTenantCache } from "@/lib/data-source";
+import { qk } from "@/lib/query-keys";
 
 interface SessionState {
   loading: boolean;
   session: Session | null;
 }
+
+const APP_KEYS = [
+  qk.tenant,
+  qk.services,
+  qk.professionals,
+  qk.workingHours(),
+  qk.bookings,
+  qk.clients,
+  qk.dashboardMetrics,
+] as const;
 
 /**
  * Subscribes to Supabase auth state. In mock mode returns a stable signed-in
@@ -30,10 +41,32 @@ export function useSession(): SessionState {
       setState({ loading: false, session: data.session });
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (
+        event !== "SIGNED_IN" &&
+        event !== "SIGNED_OUT" &&
+        event !== "USER_UPDATED"
+      ) {
+        // Ignore TOKEN_REFRESHED / INITIAL_SESSION churn.
+        setState({ loading: false, session });
+        return;
+      }
       setState({ loading: false, session });
       resetTenantCache();
-      queryClient.invalidateQueries();
+
+      if (event === "SIGNED_OUT") {
+        // Targeted removal — avoid clearing unrelated provider state and
+        // avoid refetching protected queries with no bearer (401 storms).
+        for (const key of APP_KEYS) {
+          queryClient.removeQueries({ queryKey: key });
+        }
+      } else {
+        // SIGNED_IN / USER_UPDATED: invalidate so active subscribers refetch
+        // with the new identity.
+        for (const key of APP_KEYS) {
+          queryClient.invalidateQueries({ queryKey: key });
+        }
+      }
     });
 
     return () => {
