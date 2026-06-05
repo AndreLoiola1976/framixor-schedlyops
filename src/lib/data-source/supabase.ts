@@ -36,24 +36,33 @@ async function call<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 
 type TenantRow = { tenant_id: string; slug: string; name: string; is_active: boolean };
 
-function safeInitials(name: string | null | undefined): string {
-  if (!name) return "??";
-  const initials = name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((p) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-  return initials || "??";
+function safeInitials(name: unknown): string {
+  // Defensive: coerce non-string inputs (null, undefined, numbers, objects)
+  // to a string before calling .split — prevents
+  // "Cannot read properties of undefined (reading 'split')" from leaking out
+  // through the tenant query.
+  const str = typeof name === "string" ? name : "";
+  if (!str.trim()) return "--";
+  try {
+    const initials = str
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((p) => p[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+    return initials || "--";
+  } catch {
+    return "--";
+  }
 }
 
 function adaptTenant(row: TenantRow): TenantInfo {
-  const name = row?.name ?? "";
+  const name = typeof row?.name === "string" && row.name.trim() ? row.name : "Workspace";
   return {
-    id: row?.tenant_id ?? "",
+    id: typeof row?.tenant_id === "string" ? row.tenant_id : "",
     name,
-    slug: row?.slug ?? "",
+    slug: typeof row?.slug === "string" ? row.slug : "",
     industry: "",
     email: "",
     phone: "",
@@ -108,7 +117,7 @@ function adaptProfessional(row: ProfessionalRow, tenantId: string): Professional
     role: "",
     email: "",
     phone: "",
-    initials: safeInitials(row.name) === "??" ? "?" : safeInitials(row.name),
+    initials: safeInitials(row.name),
     specialties: [],
     workingDays: "",
     workingHours: "",
