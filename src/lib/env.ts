@@ -11,6 +11,14 @@
 
 export type DataSource = "mock" | "supabase";
 
+import {
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  SUPABASE_CONFIG_SOURCE,
+} from "./supabase-config";
+
+export { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIG_SOURCE };
+
 const OVERRIDE_KEY = "schedlyops:data-source";
 
 function readString(name: string): string {
@@ -36,19 +44,15 @@ if (envRaw !== "mock" && envRaw !== "supabase") {
 const ENV_DATA_SOURCE: DataSource = envRaw;
 
 export const TENANT_SLUG: string = readString("VITE_SCHEDLYOPS_TENANT_SLUG") || "demo-barber";
-export const SUPABASE_URL: string = readString("VITE_SUPABASE_URL");
-export const SUPABASE_ANON_KEY: string = readString("VITE_SUPABASE_ANON_KEY");
 
-const HAS_SUPABASE_KEYS = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+const HAS_SUPABASE_KEYS = SUPABASE_CONFIG_SOURCE !== "missing";
 
 const override = readOverride();
 let effective: DataSource = override ?? ENV_DATA_SOURCE;
 let fallbackReason: string | null = null;
 
 if (effective === "supabase" && !HAS_SUPABASE_KEYS) {
-  // Don't crash the app: surface the gap via diagnostics and fall back to mock.
-  fallbackReason =
-    "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY missing. Set them in Workspace Settings → Build Secrets, then redeploy.";
+  fallbackReason = "Supabase publishable config missing.";
   effective = "mock";
 }
 

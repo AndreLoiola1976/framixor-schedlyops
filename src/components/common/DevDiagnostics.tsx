@@ -4,6 +4,7 @@ import {
   DATA_SOURCE_FALLBACK_REASON,
   DATA_SOURCE_SOURCE,
   IS_SUPABASE,
+  SUPABASE_CONFIG_SOURCE,
   TENANT_SLUG,
   setDataSourceOverride,
 } from "@/lib/env";
@@ -90,6 +91,13 @@ export function DevDiagnostics() {
             <dt className="text-muted-foreground">mode</dt>
             <dd>
               {DATA_SOURCE} <span className="text-muted-foreground">({DATA_SOURCE_SOURCE})</span>
+            </dd>
+            <dt className="text-muted-foreground">config</dt>
+            <dd>
+              {SUPABASE_CONFIG_SOURCE}
+              {SUPABASE_CONFIG_SOURCE === "committed-dev-fallback" ? (
+                <span className="text-muted-foreground"> (DEV-only)</span>
+              ) : null}
             </dd>
             <dt className="text-muted-foreground">tenantSlug</dt>
             <dd>{TENANT_SLUG}</dd>
