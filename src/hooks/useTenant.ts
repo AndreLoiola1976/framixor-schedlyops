@@ -6,7 +6,21 @@ import { qk } from "@/lib/query-keys";
 import { useSession } from "@/hooks/useSession";
 import type { TenantInfo } from "@/lib/data-source/types";
 
-const fallback: TenantInfo = { ...activeTenant, isLive: false, isActive: true };
+// Mock-mode fallback uses the local placeholder tenant so the demo UI keeps
+// its branding. Supabase-mode fallback is a neutral stub so a missing /
+// loading / errored tenant lookup never crashes downstream `.split()` /
+// initials / name formatting and never leaks the mock brand.
+const mockFallback: TenantInfo = { ...activeTenant, isLive: false, isActive: true };
+const supabaseFallback: TenantInfo = {
+  ...activeTenant,
+  id: "",
+  name: "Workspace",
+  slug: "",
+  logoInitials: "--",
+  isLive: false,
+  isActive: false,
+};
+const fallback: TenantInfo = IS_SUPABASE ? supabaseFallback : mockFallback;
 
 export function useTenantQuery() {
   const { session, loading } = useSession();
@@ -18,7 +32,7 @@ export function useTenantQuery() {
     queryFn: () => dataSource.getTenant(),
     // Gate on a confirmed session in Supabase mode. Mock mode runs immediately.
     enabled: IS_SUPABASE ? !loading && !!userId : true,
-    initialData: IS_SUPABASE ? undefined : fallback,
+    initialData: IS_SUPABASE ? undefined : mockFallback,
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
@@ -26,7 +40,7 @@ export function useTenantQuery() {
 
 /**
  * Backwards-compatible: returns a Tenant object synchronously. When the user
- * isn't linked to a tenant (supabase mode) we return the local placeholder so
+ * isn't linked to a tenant (supabase mode) we return a neutral placeholder so
  * the UI doesn't crash — the banner surfaces the "No tenant assigned" state.
  */
 export function useTenant(): TenantInfo {
