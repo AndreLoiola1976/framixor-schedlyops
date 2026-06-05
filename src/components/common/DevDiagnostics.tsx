@@ -92,6 +92,13 @@ export function DevDiagnostics() {
             <dd>
               {DATA_SOURCE} <span className="text-muted-foreground">({DATA_SOURCE_SOURCE})</span>
             </dd>
+            <dt className="text-muted-foreground">config</dt>
+            <dd>
+              {SUPABASE_CONFIG_SOURCE}
+              {SUPABASE_CONFIG_SOURCE === "committed-dev-fallback" ? (
+                <span className="text-muted-foreground"> (DEV-only)</span>
+              ) : null}
+            </dd>
             <dt className="text-muted-foreground">tenantSlug</dt>
             <dd>{TENANT_SLUG}</dd>
             <dt className="text-muted-foreground">session</dt>
