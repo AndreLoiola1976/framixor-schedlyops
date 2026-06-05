@@ -4,6 +4,7 @@ import {
   DATA_SOURCE_FALLBACK_REASON,
   DATA_SOURCE_SOURCE,
   IS_SUPABASE,
+  SUPABASE_CONFIG_SOURCE,
   TENANT_SLUG,
   setDataSourceOverride,
 } from "@/lib/env";
