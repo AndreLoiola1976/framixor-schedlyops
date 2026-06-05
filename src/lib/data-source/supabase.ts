@@ -141,30 +141,42 @@ function adaptWorkingHours(row: WorkingHoursRow): WorkingHour {
 type BookingRow = {
   id: string;
   professional_id: string;
-  service_id: string;
+  // service_id is nullable for block rows (per documented 0018 contract). Until
+  // 0018 lands on DEV, real rows still have a service_id; we tolerate null defensively.
+  service_id: string | null;
   starts_at: string;
   ends_at: string;
-  customer_name: string;
-  customer_phone: string;
-  status: "confirmed" | "cancelled";
+  customer_name: string | null;
+  customer_phone: string | null;
+  status: "confirmed" | "cancelled" | string;
   created_at: string;
+  // Optional fields surfaced when present. Future contract: type is
+  // "appointment" | "block"; widened to tolerate any unknown value defensively.
+  type?: string | null;
+  source?: string | null;
+  note?: string | null;
 };
 
 function adaptBooking(row: BookingRow, tenantId: string): Appointment {
-  // Synthesize a stable clientId from phone so the existing UI keys work; no
-  // customer entity exists backend-side (§9).
-  const clientId = `phone:${row.customer_phone}`;
+  // Block rows have no customer — key by booking id so they don't collide in
+  // client maps. Appointments key by phone so the existing UI lookups work.
+  const clientId = row.customer_phone ? `phone:${row.customer_phone}` : `block:${row.id}`;
+  const status: Appointment["status"] = row.status === "cancelled" ? "cancelled" : "confirmed";
   return {
     id: row.id,
     tenantId,
     clientId,
     professionalId: row.professional_id,
-    serviceId: row.service_id,
+    serviceId: row.service_id ?? "",
     startISO: row.starts_at,
     endISO: row.ends_at,
-    status: row.status === "confirmed" ? "confirmed" : "cancelled",
+    status,
     priceCents: 0,
-    notes: row.customer_name, // displayed where the UI shows client name
+    notes: row.note ?? row.customer_name ?? "",
+    type: row.type === "block" ? "block" : "appointment",
+    source: row.source ?? null,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
   };
 }
 
