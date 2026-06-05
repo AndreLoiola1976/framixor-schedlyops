@@ -263,6 +263,13 @@ async function tenantId(): Promise<string> {
 
 export function resetTenantCache(): void {
   cachedTenantId = null;
+  lastTenantDiagnostic = {
+    at: new Date().toISOString(),
+    raw: null,
+    rawCount: null,
+    error: null,
+    reason: "PENDING",
+  };
 }
 
 export const supabaseAdapter: DataSourceAdapter = {
