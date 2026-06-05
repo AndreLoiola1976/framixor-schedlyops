@@ -13,6 +13,8 @@ const FRIENDLY: Record<string, string> = {
   invalid_hours: "Closing time must be after opening time.",
   invalid_slot_minutes: "Slot length must be greater than zero.",
   invalid_professional: "Selected professional isn't in your tenant.",
+  invalid_input: "One or more fields are invalid.",
+  invalid_time_range: "Closing time must be after opening time.",
 };
 
 export function toUserMessage(err: unknown): string {
