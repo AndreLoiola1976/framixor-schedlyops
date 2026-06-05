@@ -25,9 +25,7 @@ export function AppointmentRow({
   const displayPhone = isBlock ? "" : (client?.phone ?? appointment.customerPhone ?? "");
   const displayInitials = isBlock
     ? "—"
-    : (client?.initials ??
-      appointment.customerName?.trim().slice(0, 2).toUpperCase() ??
-      "—");
+    : (client?.initials ?? appointment.customerName?.trim().slice(0, 2).toUpperCase() ?? "—");
 
   return (
     <div className="grid grid-cols-12 items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40">
@@ -51,9 +49,7 @@ export function AppointmentRow({
       </div>
 
       <div className="col-span-3 min-w-0">
-        <p className="truncate text-sm text-foreground">
-          {isBlock ? "—" : (service?.name ?? "—")}
-        </p>
+        <p className="truncate text-sm text-foreground">{isBlock ? "—" : (service?.name ?? "—")}</p>
         <p className="truncate text-xs text-muted-foreground">{service?.category ?? ""}</p>
       </div>
 
