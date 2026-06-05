@@ -11,6 +11,14 @@
 
 export type DataSource = "mock" | "supabase";
 
+import {
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY,
+  SUPABASE_CONFIG_SOURCE,
+} from "./supabase-config";
+
+export { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIG_SOURCE };
+
 const OVERRIDE_KEY = "schedlyops:data-source";
 
 function readString(name: string): string {
