@@ -58,11 +58,11 @@ function safeInitials(name: unknown): string {
 }
 
 function adaptTenant(row: TenantRow): TenantInfo {
-  const name = row?.name ?? "";
+  const name = typeof row?.name === "string" && row.name.trim() ? row.name : "Workspace";
   return {
-    id: row?.tenant_id ?? "",
+    id: typeof row?.tenant_id === "string" ? row.tenant_id : "",
     name,
-    slug: row?.slug ?? "",
+    slug: typeof row?.slug === "string" ? row.slug : "",
     industry: "",
     email: "",
     phone: "",
