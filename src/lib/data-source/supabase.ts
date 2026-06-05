@@ -117,7 +117,7 @@ function adaptProfessional(row: ProfessionalRow, tenantId: string): Professional
     role: "",
     email: "",
     phone: "",
-    initials: safeInitials(row.name) === "??" ? "?" : safeInitials(row.name),
+    initials: safeInitials(row.name),
     specialties: [],
     workingDays: "",
     workingHours: "",
