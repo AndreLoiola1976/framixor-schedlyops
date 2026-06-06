@@ -1,11 +1,36 @@
+import { useState } from "react";
+import { MoreHorizontal, CalendarClock, Pencil, X, Check, UserX } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import type { Appointment } from "@/types/appointment";
 import type { Client } from "@/types/client";
 import type { Professional } from "@/types/professional";
 import type { Service } from "@/types/service";
 import { formatCurrency, formatDuration, formatTime } from "@/lib/format";
-import { MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  useCancelBooking,
+  useCompleteBooking,
+  useMarkNoShow,
+} from "@/hooks/useSchedulingMutations";
+import { RescheduleBookingDialog } from "./RescheduleBookingDialog";
+import { EditBookingDialog } from "./EditBookingDialog";
 
 interface AppointmentRowProps {
   appointment: Appointment;
@@ -26,6 +51,17 @@ export function AppointmentRow({
   const displayInitials = isBlock
     ? "—"
     : (client?.initials ?? appointment.customerName?.trim().slice(0, 2).toUpperCase() ?? "—");
+
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<null | "cancel" | "no_show">(null);
+
+  const cancelMut = useCancelBooking();
+  const completeMut = useCompleteBooking();
+  const noShowMut = useMarkNoShow();
+
+  const canAct = !isBlock && appointment.status === "confirmed";
+  const elapsed = Date.now() >= new Date(appointment.startISO).getTime();
 
   return (
     <div className="grid grid-cols-12 items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40">
@@ -69,15 +105,87 @@ export function AppointmentRow({
         ) : (
           <StatusBadge status={appointment.status} />
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Open appointment actions"
-          className="h-8 w-8 shrink-0 rounded-md"
-        >
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Open appointment actions"
+              className="h-8 w-8 shrink-0 rounded-md"
+              disabled={!canAct}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setRescheduleOpen(true)}>
+              <CalendarClock className="mr-2 h-4 w-4" /> Reschedule
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setEditOpen(true)}>
+              <Pencil className="mr-2 h-4 w-4" /> Edit details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={!elapsed || completeMut.isPending}
+              onClick={() => completeMut.mutate(appointment.id)}
+              title={!elapsed ? "Available after the appointment time has passed" : undefined}
+            >
+              <Check className="mr-2 h-4 w-4" /> Mark completed
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!elapsed}
+              onClick={() => setConfirmAction("no_show")}
+              title={!elapsed ? "Available after the appointment time has passed" : undefined}
+            >
+              <UserX className="mr-2 h-4 w-4" /> Mark no-show
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setConfirmAction("cancel")}
+              className="text-destructive focus:text-destructive"
+            >
+              <X className="mr-2 h-4 w-4" /> Cancel booking
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <RescheduleBookingDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        appointment={appointment}
+      />
+      <EditBookingDialog open={editOpen} onOpenChange={setEditOpen} appointment={appointment} />
+
+      <AlertDialog
+        open={confirmAction !== null}
+        onOpenChange={(o) => !o && setConfirmAction(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction === "cancel" ? "Cancel this booking?" : "Mark as no-show?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction === "cancel"
+                ? "The slot will become available again. The customer will not be automatically notified."
+                : "This records the customer as a no-show. This action is logged on the backend."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Back</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmAction === "cancel") cancelMut.mutate(appointment.id);
+                if (confirmAction === "no_show") noShowMut.mutate(appointment.id);
+                setConfirmAction(null);
+              }}
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
