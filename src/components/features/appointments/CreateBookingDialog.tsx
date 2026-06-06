@@ -31,7 +31,7 @@ import { useProfessionals } from "@/hooks/useProfessionals";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useCreateBooking } from "@/hooks/useCreateBooking";
 import { useTenant } from "@/hooks/useTenant";
-import { SlotTakenError } from "@/lib/booking-public";
+import { getLastAvailableSlotsDebug, SlotTakenError } from "@/lib/booking-public";
 import { toUserMessage } from "@/lib/scheduling-errors";
 
 interface Props {
@@ -199,6 +199,8 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
       selectedProfessionalFromList,
       availability: {
         rpc: "scheduling.public_available_slots",
+        debugNote:
+          "rawRpc.rawData is the pre-transform Supabase RPC result; data and slots are the post-transform string[] used by the UI.",
         queryKey: availableSlotsKey({
           tenantSlug: tenant.slug || undefined,
           professionalId: professionalId || undefined,
@@ -206,6 +208,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
           date: dateKey,
         }),
         payload,
+        rawRpc: getLastAvailableSlotsDebug(),
         availabilityQueryEnabled,
         availabilityQueryDisabledReason:
           disabledReasons.length === 0 ? null : disabledReasons.join(", "),
@@ -213,6 +216,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
         fetchStatus: slotsQuery.fetchStatus,
         isFetching: slotsQuery.isFetching,
         slotCount: slots.length,
+        slots,
         data: slots,
         error: slotsQuery.error
           ? {
