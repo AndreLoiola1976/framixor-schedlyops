@@ -255,7 +255,7 @@ export async function operatorRescheduleBooking(input: {
   /** ISO timestamptz from public_available_slots */
   newStartsAt: string;
 }): Promise<void> {
-  const params = { p_booking_id: input.bookingId, p_new_starts_at: input.newStartsAt };
+  const params = { p_booking_id: input.bookingId, p_starts_at: input.newStartsAt };
   const { data, error } = await rpc("operator_reschedule_booking", params);
   logRaw("scheduling.operator_reschedule_booking", params, data, error);
   if (error) throwBookingError(error);
