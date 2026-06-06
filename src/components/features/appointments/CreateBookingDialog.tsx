@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { availableSlotsKey } from "@/hooks/useAvailableSlots";
+import { useSession } from "@/hooks/useSession";
+import { IS_SUPABASE } from "@/lib/env";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
@@ -145,6 +148,133 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const slots = slotsQuery.data ?? [];
   const slotsReady = !!serviceId && !!professionalId && !!dateKey;
 
+  // --- DEBUG: booking availability (remove after triage) ---
+  const { session, loading: sessionLoading } = useSession();
+  const debug = useMemo(() => {
+    const selectedServiceFromList = services.find((s) => s.id === serviceId) ?? null;
+    const selectedProfessionalFromList =
+      professionals.find((p) => p.id === professionalId) ?? null;
+    const browserTimezone =
+      Intl.DateTimeFormat().resolvedOptions().timeZone ?? "unknown";
+
+    const disabledReasons: string[] = [];
+    if (!IS_SUPABASE) disabledReasons.push("not-supabase-mode");
+    if (sessionLoading) disabledReasons.push("session-loading");
+    if (!session?.user?.id) disabledReasons.push("no-session-user");
+    if (!tenant.slug) disabledReasons.push("missing-tenantSlug");
+    if (!professionalId) disabledReasons.push("missing-professionalId");
+    if (!serviceId) disabledReasons.push("missing-serviceId");
+    if (!dateKey) disabledReasons.push("missing-dateKey");
+    const availabilityQueryEnabled = disabledReasons.length === 0;
+
+    const payload =
+      tenant.slug && professionalId && serviceId && dateKey
+        ? {
+            p_tenant_slug: tenant.slug,
+            p_professional_id: professionalId,
+            p_service_id: serviceId,
+            p_date: dateKey,
+          }
+        : null;
+
+    const isoWeekday = date ? ((date.getDay() + 6) % 7) + 1 : null;
+    const weekdayName = date
+      ? new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date)
+      : null;
+
+    return {
+      form: {
+        selectedServiceId: serviceId || null,
+        selectedServiceName: selectedServiceFromList?.name ?? null,
+        selectedProfessionalId: professionalId || null,
+        selectedProfessionalName: selectedProfessionalFromList?.name ?? null,
+        selectedDateRaw: date ? date.toISOString() : null,
+        selectedDateKey: dateKey ?? null,
+        browserTimezone,
+        tenantId: tenant.id || null,
+        tenantSlug: tenant.slug || null,
+        tenantTimezone: tenant.timezone ?? null,
+      },
+      selectedServiceFromList,
+      selectedProfessionalFromList,
+      availability: {
+        rpc: "scheduling.public_available_slots",
+        queryKey: availableSlotsKey({
+          tenantSlug: tenant.slug || undefined,
+          professionalId: professionalId || undefined,
+          serviceId: serviceId || undefined,
+          date: dateKey,
+        }),
+        payload,
+        availabilityQueryEnabled,
+        availabilityQueryDisabledReason:
+          disabledReasons.length === 0 ? null : disabledReasons.join(", "),
+        status: slotsQuery.status,
+        fetchStatus: slotsQuery.fetchStatus,
+        isFetching: slotsQuery.isFetching,
+        slotCount: slots.length,
+        data: slots,
+        error: slotsQuery.error
+          ? {
+              name: (slotsQuery.error as Error).name,
+              message: (slotsQuery.error as Error).message,
+            }
+          : null,
+      },
+      supporting: {
+        services: services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          durationMinutes: s.durationMinutes,
+          active: s.active,
+          professionalIds: s.professionalIds,
+        })),
+        professionals: professionals.map((p) => ({
+          id: p.id,
+          name: p.name,
+          active: p.active,
+          workingDays: p.workingDays,
+          workingHours: p.workingHours,
+        })),
+        workingHours: "not loaded by modal",
+        bookingsConflicts: "not loaded by modal",
+      },
+      weekday: {
+        selectedDateKey: dateKey ?? null,
+        jsGetDay: date ? date.getDay() : null,
+        isoWeekday,
+        weekdayName,
+        backendWeekdayExpectation:
+          "unknown — backend contract not documented in repo",
+      },
+    };
+  }, [
+    serviceId,
+    professionalId,
+    date,
+    dateKey,
+    services,
+    professionals,
+    tenant.id,
+    tenant.slug,
+    tenant.timezone,
+    session?.user?.id,
+    sessionLoading,
+    slotsQuery.status,
+    slotsQuery.fetchStatus,
+    slotsQuery.isFetching,
+    slotsQuery.error,
+    slots,
+  ]);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[SCHEDLYOPS_BOOKING_AVAILABILITY_DEBUG]", debug);
+  }, [debug]);
+
+  const debugJson = useMemo(() => JSON.stringify(debug, null, 2), [debug]);
+  // --- /DEBUG ---
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -275,6 +405,33 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
               No tenant resolved — sign in and ensure your account is linked to a workspace.
             </p>
           )}
+
+          {/* --- DEBUG: booking availability (remove after triage) --- */}
+          <details open className="rounded border border-border bg-muted/30 p-2 text-[11px]">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 font-mono uppercase tracking-wide text-muted-foreground">
+              <span>booking availability debug</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 gap-1 px-2 text-[10px]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void navigator.clipboard
+                    .writeText(debugJson)
+                    .then(() => toast.success("Debug copied"))
+                    .catch(() => toast.error("Copy failed"));
+                }}
+              >
+                <Copy className="h-3 w-3" />
+                copy
+              </Button>
+            </summary>
+            <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-background/60 p-2 font-mono text-[10px] leading-snug">
+              {debugJson}
+            </pre>
+          </details>
+          {/* --- /DEBUG --- */}
 
           <DialogFooter>
             <Button
