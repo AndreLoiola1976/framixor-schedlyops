@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { availableSlotsKey } from "@/hooks/useAvailableSlots";
+import { useSession } from "@/hooks/useSession";
+import { IS_SUPABASE } from "@/lib/env";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
