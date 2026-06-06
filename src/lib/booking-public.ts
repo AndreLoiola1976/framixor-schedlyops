@@ -40,19 +40,69 @@ export interface AvailableSlotsInput {
   date: string;
 }
 
-type SlotRow = { slot_start: string };
+export interface AvailableSlotsDebug {
+  params: Record<string, unknown>;
+  rawData: unknown;
+  rawError: { message: string; code?: string } | null;
+  mapped: string[];
+  rawDataType: string;
+  rawDataLength: number | null;
+  firstRow: unknown;
+  firstRowKeys: string[] | null;
+}
+
+let lastAvailableSlotsDebug: AvailableSlotsDebug | null = null;
+
+export function getLastAvailableSlotsDebug(): AvailableSlotsDebug | null {
+  return lastAvailableSlotsDebug;
+}
+
+function extractSlotStart(row: unknown): string | null {
+  if (typeof row === "string") return row;
+  if (!row || typeof row !== "object") return null;
+
+  const record = row as Record<string, unknown>;
+  const value =
+    record.slot_start ?? record.start ?? record.starts_at ?? record.public_available_slots;
+
+  return typeof value === "string" ? value : null;
+}
 
 export async function listAvailableSlots(input: AvailableSlotsInput): Promise<string[]> {
-  const { data, error } = await rpc<SlotRow[]>("public_available_slots", {
+  const params = {
     p_tenant_slug: input.tenantSlug,
     p_professional_id: input.professionalId,
     p_service_id: input.serviceId,
     p_date: input.date,
-  });
-  if (error) throw new Error(error.message);
-  return (data ?? [])
-    .map((r) => r?.slot_start)
+  };
+  const { data, error } = await rpc<unknown>("public_available_slots", params);
+  const rows = Array.isArray(data) ? data : data == null ? [] : [data];
+  const mapped = rows
+    .map(extractSlotStart)
     .filter((v): v is string => typeof v === "string");
+  const firstRow = rows[0] ?? null;
+  const firstRowKeys =
+    firstRow && typeof firstRow === "object" && !Array.isArray(firstRow)
+      ? Object.keys(firstRow as Record<string, unknown>)
+      : null;
+  const rawDataType = Array.isArray(data) ? "array" : data === null ? "null" : typeof data;
+
+  lastAvailableSlotsDebug = {
+    params,
+    rawData: data,
+    rawError: error,
+    mapped,
+    rawDataType,
+    rawDataLength: Array.isArray(data) ? data.length : null,
+    firstRow,
+    firstRowKeys,
+  };
+
+  // eslint-disable-next-line no-console
+  console.log("[SCHEDLYOPS_BOOKING_RPC_RAW]", lastAvailableSlotsDebug);
+
+  if (error) throw new Error(error.message);
+  return mapped;
 }
 
 export interface CreateBookingInput {
