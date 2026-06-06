@@ -70,6 +70,16 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const [slot, setSlot] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [result, setResult] = useState<{ bookingId: string; manageToken: string | null } | null>(
+    null,
+  );
+
+  const manageUrl = useMemo(() => {
+    if (!result?.manageToken) return null;
+    if (typeof window === "undefined") return `/b/${result.manageToken}`;
+    return `${window.location.origin}/b/${result.manageToken}`;
+  }, [result]);
+
 
   const dateKey = useMemo(() => (date ? toDateKey(date) : undefined), [date]);
 
