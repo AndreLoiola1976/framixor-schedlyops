@@ -148,6 +148,133 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const slots = slotsQuery.data ?? [];
   const slotsReady = !!serviceId && !!professionalId && !!dateKey;
 
+  // --- DEBUG: booking availability (remove after triage) ---
+  const { session, loading: sessionLoading } = useSession();
+  const debug = useMemo(() => {
+    const selectedServiceFromList = services.find((s) => s.id === serviceId) ?? null;
+    const selectedProfessionalFromList =
+      professionals.find((p) => p.id === professionalId) ?? null;
+    const browserTimezone =
+      Intl.DateTimeFormat().resolvedOptions().timeZone ?? "unknown";
+
+    const disabledReasons: string[] = [];
+    if (!IS_SUPABASE) disabledReasons.push("not-supabase-mode");
+    if (sessionLoading) disabledReasons.push("session-loading");
+    if (!session?.user?.id) disabledReasons.push("no-session-user");
+    if (!tenant.slug) disabledReasons.push("missing-tenantSlug");
+    if (!professionalId) disabledReasons.push("missing-professionalId");
+    if (!serviceId) disabledReasons.push("missing-serviceId");
+    if (!dateKey) disabledReasons.push("missing-dateKey");
+    const availabilityQueryEnabled = disabledReasons.length === 0;
+
+    const payload =
+      tenant.slug && professionalId && serviceId && dateKey
+        ? {
+            p_tenant_slug: tenant.slug,
+            p_professional_id: professionalId,
+            p_service_id: serviceId,
+            p_date: dateKey,
+          }
+        : null;
+
+    const isoWeekday = date ? ((date.getDay() + 6) % 7) + 1 : null;
+    const weekdayName = date
+      ? new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(date)
+      : null;
+
+    return {
+      form: {
+        selectedServiceId: serviceId || null,
+        selectedServiceName: selectedServiceFromList?.name ?? null,
+        selectedProfessionalId: professionalId || null,
+        selectedProfessionalName: selectedProfessionalFromList?.name ?? null,
+        selectedDateRaw: date ? date.toISOString() : null,
+        selectedDateKey: dateKey ?? null,
+        browserTimezone,
+        tenantId: tenant.id || null,
+        tenantSlug: tenant.slug || null,
+        tenantTimezone: tenant.timezone ?? null,
+      },
+      selectedServiceFromList,
+      selectedProfessionalFromList,
+      availability: {
+        rpc: "scheduling.public_available_slots",
+        queryKey: availableSlotsKey({
+          tenantSlug: tenant.slug || undefined,
+          professionalId: professionalId || undefined,
+          serviceId: serviceId || undefined,
+          date: dateKey,
+        }),
+        payload,
+        availabilityQueryEnabled,
+        availabilityQueryDisabledReason:
+          disabledReasons.length === 0 ? null : disabledReasons.join(", "),
+        status: slotsQuery.status,
+        fetchStatus: slotsQuery.fetchStatus,
+        isFetching: slotsQuery.isFetching,
+        slotCount: slots.length,
+        data: slots,
+        error: slotsQuery.error
+          ? {
+              name: (slotsQuery.error as Error).name,
+              message: (slotsQuery.error as Error).message,
+            }
+          : null,
+      },
+      supporting: {
+        services: services.map((s) => ({
+          id: s.id,
+          name: s.name,
+          durationMinutes: s.durationMinutes,
+          active: s.active,
+          professionalIds: s.professionalIds,
+        })),
+        professionals: professionals.map((p) => ({
+          id: p.id,
+          name: p.name,
+          active: p.active,
+          workingDays: p.workingDays,
+          workingHours: p.workingHours,
+        })),
+        workingHours: "not loaded by modal",
+        bookingsConflicts: "not loaded by modal",
+      },
+      weekday: {
+        selectedDateKey: dateKey ?? null,
+        jsGetDay: date ? date.getDay() : null,
+        isoWeekday,
+        weekdayName,
+        backendWeekdayExpectation:
+          "unknown — backend contract not documented in repo",
+      },
+    };
+  }, [
+    serviceId,
+    professionalId,
+    date,
+    dateKey,
+    services,
+    professionals,
+    tenant.id,
+    tenant.slug,
+    tenant.timezone,
+    session?.user?.id,
+    sessionLoading,
+    slotsQuery.status,
+    slotsQuery.fetchStatus,
+    slotsQuery.isFetching,
+    slotsQuery.error,
+    slots,
+  ]);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[SCHEDLYOPS_BOOKING_AVAILABILITY_DEBUG]", debug);
+  }, [debug]);
+
+  const debugJson = useMemo(() => JSON.stringify(debug, null, 2), [debug]);
+  // --- /DEBUG ---
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
