@@ -111,6 +111,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     setSlot("");
     setCustomerName("");
     setCustomerPhone("");
+    setResult(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -120,30 +121,29 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   }
 
   const canSubmit =
-    !!tenant.slug &&
     !!serviceId &&
     !!professionalId &&
     !!dateKey &&
     !!slot &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
-    !createBooking.isPending;
+    !createBooking.isPending &&
+    !result;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
     try {
-      await createBooking.mutateAsync({
-        tenantSlug: tenant.slug,
+      // Operator UI — tenant comes from JWT, do NOT pass tenantSlug.
+      const res = await createBooking.mutateAsync({
         professionalId,
         serviceId,
         startsAt: slot,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
       });
+      setResult(res);
       toast.success("Booking created");
-      resetForm();
-      onOpenChange(false);
     } catch (err) {
       if (err instanceof SlotTakenError) {
         toast.error("This time is no longer available. Please choose another slot.");
@@ -153,6 +153,17 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
       }
     }
   }
+
+  async function copyManageLink() {
+    if (!manageUrl) return;
+    try {
+      await navigator.clipboard.writeText(manageUrl);
+      toast.success("Customer manage link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  }
+
 
   const slotsLoading = slotsQuery.isFetching;
   const slots = slotsQuery.data ?? [];
