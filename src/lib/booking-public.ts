@@ -46,7 +46,7 @@ export interface AvailableSlotsDebug {
   rawError: { message: string; code?: string } | null;
   mapped: string[];
   rawDataType: string;
-  rawDataLength: number | null;
+  rawDataLength: number;
   firstRow: unknown;
   firstRowKeys: string[] | null;
 }
@@ -86,6 +86,7 @@ export async function listAvailableSlots(input: AvailableSlotsInput): Promise<st
       ? Object.keys(firstRow as Record<string, unknown>)
       : null;
   const rawDataType = Array.isArray(data) ? "array" : data === null ? "null" : typeof data;
+  const rawDataLength = Array.isArray(data) ? data.length : data == null ? 0 : 1;
 
   lastAvailableSlotsDebug = {
     params,
@@ -93,7 +94,7 @@ export async function listAvailableSlots(input: AvailableSlotsInput): Promise<st
     rawError: error,
     mapped,
     rawDataType,
-    rawDataLength: Array.isArray(data) ? data.length : null,
+    rawDataLength,
     firstRow,
     firstRowKeys,
   };
