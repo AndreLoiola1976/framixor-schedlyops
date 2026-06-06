@@ -66,8 +66,22 @@ function parseSettings(data: unknown): TenantSettings | null {
   };
 }
 
+function logRawSettings(tag: string, params: Record<string, unknown>, data: unknown, error: unknown) {
+  // eslint-disable-next-line no-console
+  console.log(`[SCHEDLYOPS_RPC_RAW] ${tag}`, {
+    params, data, error,
+    dataType: Array.isArray(data) ? "array" : data === null ? "null" : typeof data,
+    firstRow: Array.isArray(data) ? data[0] ?? null : data,
+    firstRowKeys:
+      data && typeof (Array.isArray(data) ? data[0] : data) === "object"
+        ? Object.keys((Array.isArray(data) ? data[0] : data) as Record<string, unknown>)
+        : null,
+  });
+}
+
 export async function getTenantSettings(): Promise<TenantSettings | null> {
   const { data, error } = await rpc<unknown>("operator_get_tenant_settings");
+  logRawSettings("core.operator_get_tenant_settings", {}, data, error);
   if (error) throw new Error(error.message);
   return parseSettings(data);
 }
@@ -80,6 +94,7 @@ export async function updateTenantSettings(
     if (v !== undefined) args[`p_${k}`] = v;
   }
   const { data, error } = await rpc<unknown>("operator_update_tenant_settings", args);
+  logRawSettings("core.operator_update_tenant_settings", args, data, error);
   if (error) throw new Error(error.message);
   return parseSettings(data);
 }
