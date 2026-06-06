@@ -8,11 +8,15 @@ import { useTenant } from "@/hooks/useTenant";
 import { Separator } from "@/components/ui/separator";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
 import { IS_SUPABASE } from "@/lib/env";
-import { signOut } from "@/hooks/useSession";
+import { signOut, useSession } from "@/hooks/useSession";
+import { useBookingDialog } from "@/hooks/useBookingDialog";
 
 export function TopBar() {
   const t = useT();
   const tenant = useTenant();
+  const { session } = useSession();
+  const { setOpen } = useBookingDialog();
+  const canCreate = IS_SUPABASE && !!session?.user?.id && !!tenant.slug;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -41,19 +45,34 @@ export function TopBar() {
         <Button variant="ghost" size="icon" aria-label={t.topbar.notifications}>
           <Bell className="h-4 w-4" />
         </Button>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span tabIndex={0}>
-              <Button size="sm" className="gap-1.5 pointer-events-none opacity-60" disabled>
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs text-xs">
-            {t.topbar.newAppointmentDisabledTooltip}
-          </TooltipContent>
-        </Tooltip>
+        {canCreate ? (
+          <Button
+            size="sm"
+            className="h-9 gap-1.5 rounded-md px-3"
+            onClick={() => setOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
+          </Button>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={0}>
+                <Button
+                  size="sm"
+                  className="h-9 gap-1.5 rounded-md px-3 pointer-events-none opacity-60"
+                  disabled
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-xs">
+              {t.topbar.newAppointmentDisabledTooltip}
+            </TooltipContent>
+          </Tooltip>
+        )}
         {IS_SUPABASE ? (
           <Button
             variant="ghost"

@@ -69,7 +69,12 @@ export function AppointmentRow({
         ) : (
           <StatusBadge status={appointment.status} />
         )}
-        <Button variant="ghost" size="icon" className="h-7 w-7">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Open appointment actions"
+          className="h-8 w-8 shrink-0 rounded-md"
+        >
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </div>
