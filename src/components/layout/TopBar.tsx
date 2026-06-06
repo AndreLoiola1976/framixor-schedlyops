@@ -45,19 +45,34 @@ export function TopBar() {
         <Button variant="ghost" size="icon" aria-label={t.topbar.notifications}>
           <Bell className="h-4 w-4" />
         </Button>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span tabIndex={0}>
-              <Button size="sm" className="gap-1.5 pointer-events-none opacity-60" disabled>
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs text-xs">
-            {t.topbar.newAppointmentDisabledTooltip}
-          </TooltipContent>
-        </Tooltip>
+        {canCreate ? (
+          <Button
+            size="sm"
+            className="h-9 gap-1.5 rounded-md px-3"
+            onClick={() => setOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
+          </Button>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={0}>
+                <Button
+                  size="sm"
+                  className="h-9 gap-1.5 rounded-md px-3 pointer-events-none opacity-60"
+                  disabled
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs text-xs">
+              {t.topbar.newAppointmentDisabledTooltip}
+            </TooltipContent>
+          </Tooltip>
+        )}
         {IS_SUPABASE ? (
           <Button
             variant="ghost"
