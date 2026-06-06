@@ -406,6 +406,33 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
             </p>
           )}
 
+          {/* --- DEBUG: booking availability (remove after triage) --- */}
+          <details open className="rounded border border-border bg-muted/30 p-2 text-[11px]">
+            <summary className="flex cursor-pointer items-center justify-between gap-2 font-mono uppercase tracking-wide text-muted-foreground">
+              <span>booking availability debug</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 gap-1 px-2 text-[10px]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void navigator.clipboard
+                    .writeText(debugJson)
+                    .then(() => toast.success("Debug copied"))
+                    .catch(() => toast.error("Copy failed"));
+                }}
+              >
+                <Copy className="h-3 w-3" />
+                copy
+              </Button>
+            </summary>
+            <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-background/60 p-2 font-mono text-[10px] leading-snug">
+              {debugJson}
+            </pre>
+          </details>
+          {/* --- /DEBUG --- */}
+
           <DialogFooter>
             <Button
               type="button"
