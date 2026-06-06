@@ -3,6 +3,13 @@ import { toast } from "sonner";
 import { dataSource } from "@/lib/data-source";
 import { qk } from "@/lib/query-keys";
 import { toUserMessage } from "@/lib/scheduling-errors";
+import {
+  operatorCancelBooking,
+  operatorCompleteBooking,
+  operatorMarkNoShow,
+  operatorRescheduleBooking,
+  operatorUpdateBooking,
+} from "@/lib/booking-public";
 import type {
   ProfessionalCreateInput,
   ProfessionalUpdateInput,
