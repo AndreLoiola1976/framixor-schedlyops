@@ -304,11 +304,66 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create booking</DialogTitle>
+          <DialogTitle>{result ? "Booking created" : "Create booking"}</DialogTitle>
           <DialogDescription>
-            Capture a phone booking. Availability and conflicts are checked by the server.
+            {result
+              ? "Share the manage link with the customer. It is only shown once."
+              : "Capture a phone booking. Availability and conflicts are checked by the server."}
           </DialogDescription>
         </DialogHeader>
+
+        {result ? (
+          <div className="flex flex-col gap-4">
+            <div className="rounded border border-border bg-muted/30 p-3 text-sm">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Booking ID</p>
+              <p className="mt-1 font-mono text-xs break-all">{result.bookingId || "—"}</p>
+            </div>
+            {manageUrl ? (
+              <div className="rounded border border-border bg-muted/30 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Customer manage link
+                </p>
+                <div className="mt-1 flex items-start gap-2">
+                  <code className="flex-1 break-all rounded bg-background/60 p-1.5 text-xs">
+                    {manageUrl}
+                  </code>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={copyManageLink}
+                    className="shrink-0"
+                  >
+                    <Copy className="mr-1 h-3 w-3" /> Copy
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  This token is only returned at creation. It can&apos;t be retrieved later.
+                </p>
+              </div>
+            ) : (
+              <p className="rounded border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
+                No manage_token returned by the backend — customer self-service link is unavailable
+                for this booking.
+              </p>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  resetForm();
+                }}
+              >
+                Create another
+              </Button>
+              <Button type="button" onClick={() => handleOpenChange(false)}>
+                Done
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
