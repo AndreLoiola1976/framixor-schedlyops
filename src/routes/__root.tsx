@@ -8,6 +8,7 @@ import {
   Scripts,
   Link,
 } from "@tanstack/react-router";
+import { useState } from "react";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
 import { DevDiagnostics } from "@/components/common/DevDiagnostics";
@@ -20,6 +21,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LocaleProvider } from "@/i18n/LocaleProvider";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { BookingDialogContext } from "@/hooks/useBookingDialog";
+import { CreateBookingDialog } from "@/components/features/appointments/CreateBookingDialog";
+import { useSession } from "@/hooks/useSession";
+import { useTenant } from "@/hooks/useTenant";
+import { IS_SUPABASE } from "@/lib/env";
 
 function NotFoundComponent() {
   return (
