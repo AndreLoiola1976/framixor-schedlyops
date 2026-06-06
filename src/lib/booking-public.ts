@@ -176,17 +176,36 @@ function throwBookingError(error: { message: string }): never {
   throw new Error(error.message);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function logRaw(tag: string, params: Record<string, unknown>, data: unknown, error: any) {
+  // eslint-disable-next-line no-console
+  console.log(`[SCHEDLYOPS_RPC_RAW] ${tag}`, {
+    params,
+    data,
+    error,
+    dataType: Array.isArray(data) ? "array" : data === null ? "null" : typeof data,
+    dataLength: Array.isArray(data) ? data.length : data == null ? 0 : 1,
+    firstRow: Array.isArray(data) ? data[0] ?? null : data,
+    firstRowKeys:
+      data && typeof (Array.isArray(data) ? data[0] : data) === "object"
+        ? Object.keys((Array.isArray(data) ? data[0] : data) as Record<string, unknown>)
+        : null,
+  });
+}
+
 /** Public (anonymous) booking — used by /b/{token} flow and anonymous booking widget. */
 export async function createPublicBooking(input: CreateBookingInput): Promise<CreateBookingResult> {
   if (!input.tenantSlug) throw new Error("tenantSlug is required for public_create_booking");
-  const { data, error } = await rpc<unknown>("public_create_booking", {
+  const params = {
     p_tenant_slug: input.tenantSlug,
     p_professional_id: input.professionalId,
     p_service_id: input.serviceId,
     p_starts_at: input.startsAt,
     p_customer_name: input.customerName,
     p_customer_phone: input.customerPhone,
-  });
+  };
+  const { data, error } = await rpc<unknown>("public_create_booking", params);
+  logRaw("scheduling.public_create_booking", params, data, error);
   if (error) throwBookingError(error);
   return parseBookingResponse(data);
 }
@@ -195,13 +214,15 @@ export async function createPublicBooking(input: CreateBookingInput): Promise<Cr
 export async function createOperatorBooking(
   input: Omit<CreateBookingInput, "tenantSlug">,
 ): Promise<CreateBookingResult> {
-  const { data, error } = await rpc<unknown>("operator_create_booking", {
+  const params = {
     p_professional_id: input.professionalId,
     p_service_id: input.serviceId,
     p_starts_at: input.startsAt,
     p_customer_name: input.customerName,
     p_customer_phone: input.customerPhone,
-  });
+  };
+  const { data, error } = await rpc<unknown>("operator_create_booking", params);
+  logRaw("scheduling.operator_create_booking", params, data, error);
   if (error) throwBookingError(error);
   return parseBookingResponse(data);
 }
@@ -209,17 +230,23 @@ export async function createOperatorBooking(
 // -------- Operator booking lifecycle (migration 0023) --------
 
 export async function operatorCancelBooking(bookingId: string): Promise<void> {
-  const { error } = await rpc("operator_cancel_booking", { p_booking_id: bookingId });
+  const params = { p_booking_id: bookingId };
+  const { data, error } = await rpc("operator_cancel_booking", params);
+  logRaw("scheduling.operator_cancel_booking", params, data, error);
   throwIfError(error);
 }
 
 export async function operatorCompleteBooking(bookingId: string): Promise<void> {
-  const { error } = await rpc("operator_complete_booking", { p_booking_id: bookingId });
+  const params = { p_booking_id: bookingId };
+  const { data, error } = await rpc("operator_complete_booking", params);
+  logRaw("scheduling.operator_complete_booking", params, data, error);
   throwIfError(error);
 }
 
 export async function operatorMarkNoShow(bookingId: string): Promise<void> {
-  const { error } = await rpc("operator_mark_no_show", { p_booking_id: bookingId });
+  const params = { p_booking_id: bookingId };
+  const { data, error } = await rpc("operator_mark_no_show", params);
+  logRaw("scheduling.operator_mark_no_show", params, data, error);
   throwIfError(error);
 }
 
@@ -228,10 +255,9 @@ export async function operatorRescheduleBooking(input: {
   /** ISO timestamptz from public_available_slots */
   newStartsAt: string;
 }): Promise<void> {
-  const { error } = await rpc("operator_reschedule_booking", {
-    p_booking_id: input.bookingId,
-    p_new_starts_at: input.newStartsAt,
-  });
+  const params = { p_booking_id: input.bookingId, p_new_starts_at: input.newStartsAt };
+  const { data, error } = await rpc("operator_reschedule_booking", params);
+  logRaw("scheduling.operator_reschedule_booking", params, data, error);
   if (error) throwBookingError(error);
 }
 
@@ -245,7 +271,8 @@ export async function operatorUpdateBooking(input: {
   if (input.customerName !== undefined) args.p_customer_name = input.customerName;
   if (input.customerPhone !== undefined) args.p_customer_phone = input.customerPhone;
   if (input.note !== undefined) args.p_note = input.note;
-  const { error } = await rpc("operator_update_booking", args);
+  const { data, error } = await rpc("operator_update_booking", args);
+  logRaw("scheduling.operator_update_booking", args, data, error);
   throwIfError(error);
 }
 
