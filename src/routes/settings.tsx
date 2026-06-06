@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TenantSettingsSection } from "@/components/features/settings/TenantSettingsSection";
 import { BusinessProfileForm } from "@/components/features/settings/BusinessProfileForm";
 import { BrandingSection } from "@/components/features/settings/BrandingSection";
 import { SectionCard } from "@/components/common/SectionCard";
