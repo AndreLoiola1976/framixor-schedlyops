@@ -43,6 +43,6 @@ export function useAvailableSlots(args: UseAvailableSlotsArgs) {
       }),
     enabled: ready,
     staleTime: 30 * 1000,
-    initialData: [] as string[],
+    placeholderData: [] as string[],
   });
 }
