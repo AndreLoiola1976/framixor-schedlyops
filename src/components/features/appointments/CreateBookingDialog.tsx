@@ -528,6 +528,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );
