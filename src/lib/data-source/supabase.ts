@@ -170,7 +170,10 @@ function adaptBooking(row: BookingRow, tenantId: string): Appointment {
   // Block rows have no customer — key by booking id so they don't collide in
   // client maps. Appointments key by phone so the existing UI lookups work.
   const clientId = row.customer_phone ? `phone:${row.customer_phone}` : `block:${row.id}`;
-  const status: Appointment["status"] = row.status === "cancelled" ? "cancelled" : "confirmed";
+  const allowed: Appointment["status"][] = ["confirmed", "cancelled", "completed", "no_show"];
+  const status: Appointment["status"] = (allowed as string[]).includes(row.status)
+    ? (row.status as Appointment["status"])
+    : "confirmed";
   return {
     id: row.id,
     tenantId,
