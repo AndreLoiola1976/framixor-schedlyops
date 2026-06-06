@@ -154,19 +154,29 @@ function RootComponent() {
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const { session } = useSession();
+  const tenant = useTenant();
+  const canCreate = IS_SUPABASE && !!session?.user?.id && !!tenant.slug;
+
   if (pathname === "/auth") {
     return <Outlet />;
   }
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <TopBar />
-        <TenantMismatchBanner />
-        <main className="flex-1 bg-background">
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <BookingDialogContext.Provider value={{ open: bookingOpen, setOpen: setBookingOpen }}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <TopBar />
+          <TenantMismatchBanner />
+          <main className="flex-1 bg-background">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+      {canCreate && (
+        <CreateBookingDialog open={bookingOpen} onOpenChange={setBookingOpen} />
+      )}
+    </BookingDialogContext.Provider>
   );
 }
