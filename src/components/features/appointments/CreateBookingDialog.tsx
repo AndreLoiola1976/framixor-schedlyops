@@ -70,6 +70,16 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const [slot, setSlot] = useState<string>("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [result, setResult] = useState<{ bookingId: string; manageToken: string | null } | null>(
+    null,
+  );
+
+  const manageUrl = useMemo(() => {
+    if (!result?.manageToken) return null;
+    if (typeof window === "undefined") return `/b/${result.manageToken}`;
+    return `${window.location.origin}/b/${result.manageToken}`;
+  }, [result]);
+
 
   const dateKey = useMemo(() => (date ? toDateKey(date) : undefined), [date]);
 
@@ -101,6 +111,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     setSlot("");
     setCustomerName("");
     setCustomerPhone("");
+    setResult(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -110,30 +121,29 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   }
 
   const canSubmit =
-    !!tenant.slug &&
     !!serviceId &&
     !!professionalId &&
     !!dateKey &&
     !!slot &&
     customerName.trim().length > 0 &&
     customerPhone.trim().length > 0 &&
-    !createBooking.isPending;
+    !createBooking.isPending &&
+    !result;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
     try {
-      await createBooking.mutateAsync({
-        tenantSlug: tenant.slug,
+      // Operator UI — tenant comes from JWT, do NOT pass tenantSlug.
+      const res = await createBooking.mutateAsync({
         professionalId,
         serviceId,
         startsAt: slot,
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
       });
+      setResult(res);
       toast.success("Booking created");
-      resetForm();
-      onOpenChange(false);
     } catch (err) {
       if (err instanceof SlotTakenError) {
         toast.error("This time is no longer available. Please choose another slot.");
@@ -143,6 +153,17 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
       }
     }
   }
+
+  async function copyManageLink() {
+    if (!manageUrl) return;
+    try {
+      await navigator.clipboard.writeText(manageUrl);
+      toast.success("Customer manage link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  }
+
 
   const slotsLoading = slotsQuery.isFetching;
   const slots = slotsQuery.data ?? [];
@@ -283,11 +304,66 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create booking</DialogTitle>
+          <DialogTitle>{result ? "Booking created" : "Create booking"}</DialogTitle>
           <DialogDescription>
-            Capture a phone booking. Availability and conflicts are checked by the server.
+            {result
+              ? "Share the manage link with the customer. It is only shown once."
+              : "Capture a phone booking. Availability and conflicts are checked by the server."}
           </DialogDescription>
         </DialogHeader>
+
+        {result ? (
+          <div className="flex flex-col gap-4">
+            <div className="rounded border border-border bg-muted/30 p-3 text-sm">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Booking ID</p>
+              <p className="mt-1 font-mono text-xs break-all">{result.bookingId || "—"}</p>
+            </div>
+            {manageUrl ? (
+              <div className="rounded border border-border bg-muted/30 p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Customer manage link
+                </p>
+                <div className="mt-1 flex items-start gap-2">
+                  <code className="flex-1 break-all rounded bg-background/60 p-1.5 text-xs">
+                    {manageUrl}
+                  </code>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={copyManageLink}
+                    className="shrink-0"
+                  >
+                    <Copy className="mr-1 h-3 w-3" /> Copy
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  This token is only returned at creation. It can&apos;t be retrieved later.
+                </p>
+              </div>
+            ) : (
+              <p className="rounded border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
+                No manage_token returned by the backend — customer self-service link is unavailable
+                for this booking.
+              </p>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  resetForm();
+                }}
+              >
+                Create another
+              </Button>
+              <Button type="button" onClick={() => handleOpenChange(false)}>
+                Done
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -452,6 +528,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

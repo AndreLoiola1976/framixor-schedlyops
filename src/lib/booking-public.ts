@@ -107,13 +107,21 @@ export async function listAvailableSlots(input: AvailableSlotsInput): Promise<st
 }
 
 export interface CreateBookingInput {
-  tenantSlug: string;
+  /** Required only for public_create_booking. Omit for operator_create_booking (tenant from JWT). */
+  tenantSlug?: string;
   professionalId: string;
   serviceId: string;
   /** ISO timestamptz — must be one of the slot_start values returned by public_available_slots. */
   startsAt: string;
   customerName: string;
   customerPhone: string;
+}
+
+/** Shape returned by operator_create_booking / public_create_booking after migration 0023. */
+export interface CreateBookingResult {
+  bookingId: string;
+  /** Single-use customer manage token. Only returned at creation time — never refetched later. */
+  manageToken: string | null;
 }
 
 /** Sentinel error so the dialog can map to the required user-facing copy. */
@@ -125,18 +133,53 @@ export class SlotTakenError extends Error {
 }
 
 const TAKEN_PATTERNS = [
-  /slot/i,
+  /slot_taken/i,
   /conflict/i,
   /overlap/i,
   /already\s*booked/i,
   /not\s*available/i,
   /no_longer/i,
   /unavailable/i,
-  /taken/i,
+  /\btaken\b/i,
 ];
 
-export async function createPublicBooking(input: CreateBookingInput): Promise<string> {
-  const { data, error } = await rpc<string>("public_create_booking", {
+/**
+ * Parse the booking response. TABLE-returning RPC returns
+ * [{booking_id, manage_token}] (migration 0023). Tolerates legacy scalar uuid.
+ */
+function parseBookingResponse(data: unknown): CreateBookingResult {
+  if (typeof data === "string") return { bookingId: data, manageToken: null };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (row && typeof row === "object") {
+    const rec = row as Record<string, unknown>;
+    const bookingId =
+      (typeof rec.booking_id === "string" && rec.booking_id) ||
+      (typeof rec.id === "string" && rec.id) ||
+      "";
+    const manageToken =
+      (typeof rec.manage_token === "string" && rec.manage_token) ||
+      (typeof rec.token === "string" && rec.token) ||
+      null;
+    return { bookingId, manageToken };
+  }
+  return { bookingId: "", manageToken: null };
+}
+
+function throwIfError(error: { message: string } | null) {
+  if (error) throw new Error(error.message);
+}
+
+function throwBookingError(error: { message: string }): never {
+  if (TAKEN_PATTERNS.some((re) => re.test(error.message))) {
+    throw new SlotTakenError(error.message);
+  }
+  throw new Error(error.message);
+}
+
+/** Public (anonymous) booking — used by /b/{token} flow and anonymous booking widget. */
+export async function createPublicBooking(input: CreateBookingInput): Promise<CreateBookingResult> {
+  if (!input.tenantSlug) throw new Error("tenantSlug is required for public_create_booking");
+  const { data, error } = await rpc<unknown>("public_create_booking", {
     p_tenant_slug: input.tenantSlug,
     p_professional_id: input.professionalId,
     p_service_id: input.serviceId,
@@ -144,11 +187,65 @@ export async function createPublicBooking(input: CreateBookingInput): Promise<st
     p_customer_name: input.customerName,
     p_customer_phone: input.customerPhone,
   });
-  if (error) {
-    if (TAKEN_PATTERNS.some((re) => re.test(error.message))) {
-      throw new SlotTakenError(error.message);
-    }
-    throw new Error(error.message);
-  }
-  return typeof data === "string" ? data : "";
+  if (error) throwBookingError(error);
+  return parseBookingResponse(data);
 }
+
+/** Operator-side booking. Tenant context comes from the JWT — do NOT pass tenant slug. */
+export async function createOperatorBooking(
+  input: Omit<CreateBookingInput, "tenantSlug">,
+): Promise<CreateBookingResult> {
+  const { data, error } = await rpc<unknown>("operator_create_booking", {
+    p_professional_id: input.professionalId,
+    p_service_id: input.serviceId,
+    p_starts_at: input.startsAt,
+    p_customer_name: input.customerName,
+    p_customer_phone: input.customerPhone,
+  });
+  if (error) throwBookingError(error);
+  return parseBookingResponse(data);
+}
+
+// -------- Operator booking lifecycle (migration 0023) --------
+
+export async function operatorCancelBooking(bookingId: string): Promise<void> {
+  const { error } = await rpc("operator_cancel_booking", { p_booking_id: bookingId });
+  throwIfError(error);
+}
+
+export async function operatorCompleteBooking(bookingId: string): Promise<void> {
+  const { error } = await rpc("operator_complete_booking", { p_booking_id: bookingId });
+  throwIfError(error);
+}
+
+export async function operatorMarkNoShow(bookingId: string): Promise<void> {
+  const { error } = await rpc("operator_mark_no_show", { p_booking_id: bookingId });
+  throwIfError(error);
+}
+
+export async function operatorRescheduleBooking(input: {
+  bookingId: string;
+  /** ISO timestamptz from public_available_slots */
+  newStartsAt: string;
+}): Promise<void> {
+  const { error } = await rpc("operator_reschedule_booking", {
+    p_booking_id: input.bookingId,
+    p_new_starts_at: input.newStartsAt,
+  });
+  if (error) throwBookingError(error);
+}
+
+export async function operatorUpdateBooking(input: {
+  bookingId: string;
+  customerName?: string;
+  customerPhone?: string;
+  note?: string;
+}): Promise<void> {
+  const args: Record<string, unknown> = { p_booking_id: input.bookingId };
+  if (input.customerName !== undefined) args.p_customer_name = input.customerName;
+  if (input.customerPhone !== undefined) args.p_customer_phone = input.customerPhone;
+  if (input.note !== undefined) args.p_note = input.note;
+  const { error } = await rpc("operator_update_booking", args);
+  throwIfError(error);
+}
+
