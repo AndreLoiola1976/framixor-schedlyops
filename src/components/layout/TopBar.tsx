@@ -7,6 +7,7 @@ import { useT } from "@/i18n/useT";
 import { useTenant } from "@/hooks/useTenant";
 import { Separator } from "@/components/ui/separator";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
+import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
 import { IS_SUPABASE } from "@/lib/env";
 import { signOut, useSession } from "@/hooks/useSession";
 import { useBookingDialog } from "@/hooks/useBookingDialog";
@@ -41,6 +42,7 @@ export function TopBar() {
       </div>
 
       <div className="ml-auto flex items-center gap-1.5 md:ml-0">
+        <ThemeSwitcher />
         <LocaleSwitcher />
         <Button variant="ghost" size="icon" aria-label={t.topbar.notifications}>
           <Bell className="h-4 w-4" />
