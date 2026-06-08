@@ -19,7 +19,6 @@ import { getSupabase } from "@/lib/supabase";
  *   }) -> string                       // booking uuid
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rpc<T = unknown>(fn: string, args: Record<string, unknown>) {
   return (
     getSupabase()
@@ -77,9 +76,7 @@ export async function listAvailableSlots(input: AvailableSlotsInput): Promise<st
   };
   const { data, error } = await rpc<unknown>("public_available_slots", params);
   const rows = Array.isArray(data) ? data : data == null ? [] : [data];
-  const mapped = rows
-    .map(extractSlotStart)
-    .filter((v): v is string => typeof v === "string");
+  const mapped = rows.map(extractSlotStart).filter((v): v is string => typeof v === "string");
   const firstRow = rows[0] ?? null;
   const firstRowKeys =
     firstRow && typeof firstRow === "object" && !Array.isArray(firstRow)
@@ -99,7 +96,6 @@ export async function listAvailableSlots(input: AvailableSlotsInput): Promise<st
     firstRowKeys,
   };
 
-  // eslint-disable-next-line no-console
   console.log("[SCHEDLYOPS_BOOKING_RPC_RAW]", lastAvailableSlotsDebug);
 
   if (error) throw new Error(error.message);
@@ -178,14 +174,13 @@ function throwBookingError(error: { message: string }): never {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function logRaw(tag: string, params: Record<string, unknown>, data: unknown, error: any) {
-  // eslint-disable-next-line no-console
   console.log(`[SCHEDLYOPS_RPC_RAW] ${tag}`, {
     params,
     data,
     error,
     dataType: Array.isArray(data) ? "array" : data === null ? "null" : typeof data,
     dataLength: Array.isArray(data) ? data.length : data == null ? 0 : 1,
-    firstRow: Array.isArray(data) ? data[0] ?? null : data,
+    firstRow: Array.isArray(data) ? (data[0] ?? null) : data,
     firstRowKeys:
       data && typeof (Array.isArray(data) ? data[0] : data) === "object"
         ? Object.keys((Array.isArray(data) ? data[0] : data) as Record<string, unknown>)
@@ -275,4 +270,3 @@ export async function operatorUpdateBooking(input: {
   logRaw("scheduling.operator_update_booking", args, data, error);
   throwIfError(error);
 }
-

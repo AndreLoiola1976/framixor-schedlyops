@@ -29,6 +29,7 @@ import {
   useCompleteBooking,
   useMarkNoShow,
 } from "@/hooks/useSchedulingMutations";
+import { useT } from "@/i18n/useT";
 import { RescheduleBookingDialog } from "./RescheduleBookingDialog";
 import { EditBookingDialog } from "./EditBookingDialog";
 
@@ -45,8 +46,11 @@ export function AppointmentRow({
   service,
   professional,
 }: AppointmentRowProps) {
+  const t = useT();
   const isBlock = appointment.type === "block";
-  const displayName = isBlock ? "Blocked" : (client?.name ?? appointment.customerName ?? "—");
+  const displayName = isBlock
+    ? t.appointments.row.blocked
+    : (client?.name ?? appointment.customerName ?? "—");
   const displayPhone = isBlock ? "" : (client?.phone ?? appointment.customerPhone ?? "");
   const displayInitials = isBlock
     ? "—"
@@ -100,7 +104,7 @@ export function AppointmentRow({
       <div className="col-span-1 flex items-center justify-end gap-2">
         {isBlock ? (
           <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            Blocked
+            {t.appointments.row.blocked}
           </span>
         ) : (
           <StatusBadge status={appointment.status} />
@@ -110,7 +114,7 @@ export function AppointmentRow({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Open appointment actions"
+              aria-label={t.appointments.row.openActions}
               className="h-8 w-8 shrink-0 rounded-md"
               disabled={!canAct}
             >
@@ -119,32 +123,32 @@ export function AppointmentRow({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setRescheduleOpen(true)}>
-              <CalendarClock className="mr-2 h-4 w-4" /> Reschedule
+              <CalendarClock className="mr-2 h-4 w-4" /> {t.appointments.row.reschedule}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-2 h-4 w-4" /> Edit details
+              <Pencil className="mr-2 h-4 w-4" /> {t.appointments.row.editDetails}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               disabled={!elapsed || completeMut.isPending}
               onClick={() => completeMut.mutate(appointment.id)}
-              title={!elapsed ? "Available after the appointment time has passed" : undefined}
+              title={!elapsed ? t.appointments.row.elapsedTooltip : undefined}
             >
-              <Check className="mr-2 h-4 w-4" /> Mark completed
+              <Check className="mr-2 h-4 w-4" /> {t.appointments.row.markCompleted}
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!elapsed}
               onClick={() => setConfirmAction("no_show")}
-              title={!elapsed ? "Available after the appointment time has passed" : undefined}
+              title={!elapsed ? t.appointments.row.elapsedTooltip : undefined}
             >
-              <UserX className="mr-2 h-4 w-4" /> Mark no-show
+              <UserX className="mr-2 h-4 w-4" /> {t.appointments.row.markNoShow}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => setConfirmAction("cancel")}
               className="text-destructive focus:text-destructive"
             >
-              <X className="mr-2 h-4 w-4" /> Cancel booking
+              <X className="mr-2 h-4 w-4" /> {t.appointments.row.cancelBooking}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -157,23 +161,22 @@ export function AppointmentRow({
       />
       <EditBookingDialog open={editOpen} onOpenChange={setEditOpen} appointment={appointment} />
 
-      <AlertDialog
-        open={confirmAction !== null}
-        onOpenChange={(o) => !o && setConfirmAction(null)}
-      >
+      <AlertDialog open={confirmAction !== null} onOpenChange={(o) => !o && setConfirmAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmAction === "cancel" ? "Cancel this booking?" : "Mark as no-show?"}
+              {confirmAction === "cancel"
+                ? t.appointments.row.cancelTitle
+                : t.appointments.row.noShowTitle}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmAction === "cancel"
-                ? "The slot will become available again. The customer will not be automatically notified."
-                : "This records the customer as a no-show. This action is logged on the backend."}
+                ? t.appointments.row.cancelDescription
+                : t.appointments.row.noShowDescription}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Back</AlertDialogCancel>
+            <AlertDialogCancel>{t.appointments.row.back}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (confirmAction === "cancel") cancelMut.mutate(appointment.id);
@@ -181,7 +184,7 @@ export function AppointmentRow({
                 setConfirmAction(null);
               }}
             >
-              Confirm
+              {t.appointments.row.confirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

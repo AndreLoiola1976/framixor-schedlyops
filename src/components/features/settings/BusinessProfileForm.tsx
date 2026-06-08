@@ -28,10 +28,7 @@ export function BusinessProfileForm() {
   ];
 
   return (
-    <SectionCard
-      title={t.settings.business.title}
-      description={t.settings.business.subtitle}
-    >
+    <SectionCard title={t.settings.business.title} description={t.settings.business.subtitle}>
       <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {rows.map((r) => (
           <div key={r.label} className="flex flex-col gap-1">
@@ -41,8 +38,8 @@ export function BusinessProfileForm() {
         ))}
       </dl>
       <p className="mt-4 text-xs text-muted-foreground">
-        Editing business profile fields is not yet available. Operational settings
-        (timezone, policies, fees) can be edited in Workspace settings below.
+        Editing business profile fields is not yet available. Operational settings (timezone,
+        policies, fees) can be edited in Workspace settings below.
       </p>
     </SectionCard>
   );

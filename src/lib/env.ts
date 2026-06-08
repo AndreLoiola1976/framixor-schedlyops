@@ -11,11 +11,7 @@
 
 export type DataSource = "mock" | "supabase";
 
-import {
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  SUPABASE_CONFIG_SOURCE,
-} from "./supabase-config";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIG_SOURCE } from "./supabase-config";
 
 export { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_CONFIG_SOURCE };
 

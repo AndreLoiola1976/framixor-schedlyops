@@ -31,6 +31,7 @@ import { useProfessionals } from "@/hooks/useProfessionals";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useCreateBooking } from "@/hooks/useCreateBooking";
 import { useTenant } from "@/hooks/useTenant";
+import { useT } from "@/i18n/useT";
 import { getLastAvailableSlotsDebug, SlotTakenError } from "@/lib/booking-public";
 import { toUserMessage } from "@/lib/scheduling-errors";
 
@@ -61,6 +62,7 @@ function formatSlotTime(iso: string, timezone: string | undefined): string {
 
 export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const tenant = useTenant();
+  const t = useT();
   const services = useServices();
   const professionals = useProfessionals();
 
@@ -80,14 +82,10 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     return `${window.location.origin}/b/${result.manageToken}`;
   }, [result]);
 
-
   const dateKey = useMemo(() => (date ? toDateKey(date) : undefined), [date]);
 
   const activeServices = useMemo(() => services.filter((s) => s.active), [services]);
-  const activeProfessionals = useMemo(
-    () => professionals.filter((p) => p.active),
-    [professionals],
-  );
+  const activeProfessionals = useMemo(() => professionals.filter((p) => p.active), [professionals]);
 
   const slotsQuery = useAvailableSlots({
     tenantSlug: tenant.slug || undefined,
@@ -143,10 +141,10 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
         customerPhone: customerPhone.trim(),
       });
       setResult(res);
-      toast.success("Booking created");
+      toast.success(t.bookingDialog.create.success);
     } catch (err) {
       if (err instanceof SlotTakenError) {
-        toast.error("This time is no longer available. Please choose another slot.");
+        toast.error(t.bookingDialog.create.slotTaken);
         setSlot("");
       } else {
         toast.error(toUserMessage(err));
@@ -158,12 +156,11 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     if (!manageUrl) return;
     try {
       await navigator.clipboard.writeText(manageUrl);
-      toast.success("Customer manage link copied");
+      toast.success(t.bookingDialog.create.manageLinkCopied);
     } catch {
-      toast.error("Copy failed");
+      toast.error(t.bookingDialog.create.copyFailed);
     }
   }
-
 
   const slotsLoading = slotsQuery.isFetching;
   const slots = slotsQuery.data ?? [];
@@ -173,10 +170,8 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const { session, loading: sessionLoading } = useSession();
   const debug = useMemo(() => {
     const selectedServiceFromList = services.find((s) => s.id === serviceId) ?? null;
-    const selectedProfessionalFromList =
-      professionals.find((p) => p.id === professionalId) ?? null;
-    const browserTimezone =
-      Intl.DateTimeFormat().resolvedOptions().timeZone ?? "unknown";
+    const selectedProfessionalFromList = professionals.find((p) => p.id === professionalId) ?? null;
+    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "unknown";
 
     const disabledReasons: string[] = [];
     if (!IS_SUPABASE) disabledReasons.push("not-supabase-mode");
@@ -269,8 +264,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
         jsGetDay: date ? date.getDay() : null,
         isoWeekday,
         weekdayName,
-        backendWeekdayExpectation:
-          "unknown — backend contract not documented in repo",
+        backendWeekdayExpectation: "unknown — backend contract not documented in repo",
       },
     };
   }, [
@@ -293,7 +287,6 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
   ]);
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.log("[SCHEDLYOPS_BOOKING_AVAILABILITY_DEBUG]", debug);
   }, [debug]);
 
@@ -304,24 +297,26 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{result ? "Booking created" : "Create booking"}</DialogTitle>
+          <DialogTitle>
+            {result ? t.bookingDialog.create.titleDone : t.bookingDialog.create.title}
+          </DialogTitle>
           <DialogDescription>
-            {result
-              ? "Share the manage link with the customer. It is only shown once."
-              : "Capture a phone booking. Availability and conflicts are checked by the server."}
+            {result ? t.bookingDialog.create.descriptionDone : t.bookingDialog.create.description}
           </DialogDescription>
         </DialogHeader>
 
         {result ? (
           <div className="flex flex-col gap-4">
             <div className="rounded border border-border bg-muted/30 p-3 text-sm">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Booking ID</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t.bookingDialog.create.bookingId}
+              </p>
               <p className="mt-1 font-mono text-xs break-all">{result.bookingId || "—"}</p>
             </div>
             {manageUrl ? (
               <div className="rounded border border-border bg-muted/30 p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Customer manage link
+                  {t.bookingDialog.create.manageLink}
                 </p>
                 <div className="mt-1 flex items-start gap-2">
                   <code className="flex-1 break-all rounded bg-background/60 p-1.5 text-xs">
@@ -334,17 +329,16 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
                     onClick={copyManageLink}
                     className="shrink-0"
                   >
-                    <Copy className="mr-1 h-3 w-3" /> Copy
+                    <Copy className="mr-1 h-3 w-3" /> {t.bookingDialog.create.copy}
                   </Button>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">
-                  This token is only returned at creation. It can&apos;t be retrieved later.
+                  {t.bookingDialog.create.manageLinkOnce}
                 </p>
               </div>
             ) : (
               <p className="rounded border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
-                No manage_token returned by the backend — customer self-service link is unavailable
-                for this booking.
+                {t.bookingDialog.create.noToken}
               </p>
             )}
             <DialogFooter>
@@ -355,179 +349,175 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
                   resetForm();
                 }}
               >
-                Create another
+                {t.bookingDialog.create.createAnother}
               </Button>
               <Button type="button" onClick={() => handleOpenChange(false)}>
-                Done
+                {t.bookingDialog.create.done}
               </Button>
             </DialogFooter>
           </div>
         ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="cb-service">{t.bookingDialog.create.service}</Label>
+                <Select value={serviceId} onValueChange={setServiceId}>
+                  <SelectTrigger id="cb-service">
+                    <SelectValue placeholder={t.bookingDialog.create.serviceSelect} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeServices.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-service">Service</Label>
-              <Select value={serviceId} onValueChange={setServiceId}>
-                <SelectTrigger id="cb-service">
-                  <SelectValue placeholder="Select service" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeServices.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="cb-pro">{t.bookingDialog.create.professional}</Label>
+                <Select value={professionalId} onValueChange={setProfessionalId}>
+                  <SelectTrigger id="cb-pro">
+                    <SelectValue placeholder={t.bookingDialog.create.professionalSelect} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeProfessionals.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-pro">Professional</Label>
-              <Select value={professionalId} onValueChange={setProfessionalId}>
-                <SelectTrigger id="cb-pro">
-                  <SelectValue placeholder="Select professional" />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeProfessionals.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <Label>{t.bookingDialog.create.date}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        !date && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>{t.bookingDialog.create.pickDate}</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label>Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "justify-start text-left font-normal",
-                      !date && "text-muted-foreground",
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="cb-slot">{t.bookingDialog.create.time}</Label>
+                <Select value={slot} onValueChange={setSlot} disabled={!slotsReady || slotsLoading}>
+                  <SelectTrigger id="cb-slot">
+                    <SelectValue
+                      placeholder={
+                        !slotsReady
+                          ? t.bookingDialog.create.timePrereq
+                          : slotsLoading
+                            ? t.bookingDialog.create.timeLoading
+                            : slots.length === 0
+                              ? t.bookingDialog.create.timeNoSlots
+                              : t.bookingDialog.create.timeReady
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {slots.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {formatSlotTime(s, tenant.timezone)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-slot">Time slot</Label>
-              <Select value={slot} onValueChange={setSlot} disabled={!slotsReady || slotsLoading}>
-                <SelectTrigger id="cb-slot">
-                  <SelectValue
-                    placeholder={
-                      !slotsReady
-                        ? "Pick service, pro, and date"
-                        : slotsLoading
-                          ? "Loading slots…"
-                          : slots.length === 0
-                            ? "No slots available"
-                            : "Select time"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {slots.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {formatSlotTime(s, tenant.timezone)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="cb-name">{t.bookingDialog.create.customerName}</Label>
+                <Input
+                  id="cb-name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  autoComplete="off"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="cb-phone">{t.bookingDialog.create.customerPhone}</Label>
+                <Input
+                  id="cb-phone"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  inputMode="tel"
+                  autoComplete="off"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-name">Customer name</Label>
-              <Input
-                id="cb-name"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                autoComplete="off"
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-phone">Customer phone</Label>
-              <Input
-                id="cb-phone"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                inputMode="tel"
-                autoComplete="off"
-                required
-              />
-            </div>
-          </div>
+            {!tenant.slug && (
+              <p className="text-xs text-destructive">{t.bookingDialog.create.missingTenant}</p>
+            )}
 
-          {!tenant.slug && (
-            <p className="text-xs text-destructive">
-              No tenant resolved — sign in and ensure your account is linked to a workspace.
-            </p>
-          )}
+            {/* --- DEBUG: booking availability (remove after triage) --- */}
+            <details open className="rounded border border-border bg-muted/30 p-2 text-[11px]">
+              <summary className="flex cursor-pointer items-center justify-between gap-2 font-mono uppercase tracking-wide text-muted-foreground">
+                <span>booking availability debug</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 gap-1 px-2 text-[10px]"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void navigator.clipboard
+                      .writeText(debugJson)
+                      .then(() => toast.success("Debug copied"))
+                      .catch(() => toast.error("Copy failed"));
+                  }}
+                >
+                  <Copy className="h-3 w-3" />
+                  copy
+                </Button>
+              </summary>
+              <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-background/60 p-2 font-mono text-[10px] leading-snug">
+                {debugJson}
+              </pre>
+            </details>
+            {/* --- /DEBUG --- */}
 
-          {/* --- DEBUG: booking availability (remove after triage) --- */}
-          <details open className="rounded border border-border bg-muted/30 p-2 text-[11px]">
-            <summary className="flex cursor-pointer items-center justify-between gap-2 font-mono uppercase tracking-wide text-muted-foreground">
-              <span>booking availability debug</span>
+            <DialogFooter>
               <Button
                 type="button"
-                size="sm"
                 variant="ghost"
-                className="h-6 gap-1 px-2 text-[10px]"
-                onClick={(e) => {
-                  e.preventDefault();
-                  void navigator.clipboard
-                    .writeText(debugJson)
-                    .then(() => toast.success("Debug copied"))
-                    .catch(() => toast.error("Copy failed"));
-                }}
+                onClick={() => handleOpenChange(false)}
+                disabled={createBooking.isPending}
               >
-                <Copy className="h-3 w-3" />
-                copy
+                {t.common.cancel}
               </Button>
-            </summary>
-            <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-background/60 p-2 font-mono text-[10px] leading-snug">
-              {debugJson}
-            </pre>
-          </details>
-          {/* --- /DEBUG --- */}
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => handleOpenChange(false)}
-              disabled={createBooking.isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!canSubmit}>
-              {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create booking
-            </Button>
-          </DialogFooter>
-        </form>
+              <Button type="submit" disabled={!canSubmit}>
+                {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t.bookingDialog.create.submit}
+              </Button>
+            </DialogFooter>
+          </form>
         )}
       </DialogContent>
     </Dialog>
