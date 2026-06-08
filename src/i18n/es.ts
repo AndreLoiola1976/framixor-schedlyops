@@ -120,8 +120,7 @@ export const es: Dictionary = {
       titleDone: "Reserva creada",
       description:
         "Captura una reserva telefónica. El servidor valida disponibilidad y conflictos.",
-      descriptionDone:
-        "Comparte el enlace de gestión con el cliente. Solo se muestra una vez.",
+      descriptionDone: "Comparte el enlace de gestión con el cliente. Solo se muestra una vez.",
       service: "Servicio",
       serviceSelect: "Selecciona servicio",
       professional: "Profesional",

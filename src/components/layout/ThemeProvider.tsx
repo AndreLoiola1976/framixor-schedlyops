@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useBranding } from "@/hooks/useBranding";
-import {
-  DEFAULT_THEME,
-  THEME_STORAGE_KEY,
-  ThemeContext,
-  type ThemeMode,
-} from "@/hooks/useTheme";
+import { DEFAULT_THEME, THEME_STORAGE_KEY, ThemeContext, type ThemeMode } from "@/hooks/useTheme";
 import type { Branding } from "@/types/branding";
 
 /**
@@ -103,7 +98,5 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     };
   }, [branding, theme]);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
 }

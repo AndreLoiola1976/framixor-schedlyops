@@ -176,9 +176,7 @@ function AppShell() {
           </main>
         </SidebarInset>
       </SidebarProvider>
-      {canCreate && (
-        <CreateBookingDialog open={bookingOpen} onOpenChange={setBookingOpen} />
-      )}
+      {canCreate && <CreateBookingDialog open={bookingOpen} onOpenChange={setBookingOpen} />}
     </BookingDialogContext.Provider>
   );
 }

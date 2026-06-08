@@ -48,11 +48,7 @@ export function TopBar() {
           <Bell className="h-4 w-4" />
         </Button>
         {canCreate ? (
-          <Button
-            size="sm"
-            className="h-9 gap-1.5 rounded-md px-3"
-            onClick={() => setOpen(true)}
-          >
+          <Button size="sm" className="h-9 gap-1.5 rounded-md px-3" onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">{t.topbar.newAppointment}</span>
           </Button>

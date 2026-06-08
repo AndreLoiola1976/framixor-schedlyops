@@ -48,7 +48,9 @@ export function AppointmentRow({
 }: AppointmentRowProps) {
   const t = useT();
   const isBlock = appointment.type === "block";
-  const displayName = isBlock ? t.appointments.row.blocked : (client?.name ?? appointment.customerName ?? "—");
+  const displayName = isBlock
+    ? t.appointments.row.blocked
+    : (client?.name ?? appointment.customerName ?? "—");
   const displayPhone = isBlock ? "" : (client?.phone ?? appointment.customerPhone ?? "");
   const displayInitials = isBlock
     ? "—"
@@ -159,10 +161,7 @@ export function AppointmentRow({
       />
       <EditBookingDialog open={editOpen} onOpenChange={setEditOpen} appointment={appointment} />
 
-      <AlertDialog
-        open={confirmAction !== null}
-        onOpenChange={(o) => !o && setConfirmAction(null)}
-      >
+      <AlertDialog open={confirmAction !== null} onOpenChange={(o) => !o && setConfirmAction(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>

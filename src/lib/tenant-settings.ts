@@ -38,9 +38,7 @@ export interface TenantSettings {
   raw: Record<string, unknown>;
 }
 
-export type TenantSettingsPatch = Partial<
-  Omit<TenantSettings, "slug" | "name" | "raw">
->;
+export type TenantSettingsPatch = Partial<Omit<TenantSettings, "slug" | "name" | "raw">>;
 
 function parseSettings(data: unknown): TenantSettings | null {
   const row = Array.isArray(data) ? data[0] : data;
@@ -66,12 +64,18 @@ function parseSettings(data: unknown): TenantSettings | null {
   };
 }
 
-function logRawSettings(tag: string, params: Record<string, unknown>, data: unknown, error: unknown) {
-  // eslint-disable-next-line no-console
+function logRawSettings(
+  tag: string,
+  params: Record<string, unknown>,
+  data: unknown,
+  error: unknown,
+) {
   console.log(`[SCHEDLYOPS_RPC_RAW] ${tag}`, {
-    params, data, error,
+    params,
+    data,
+    error,
     dataType: Array.isArray(data) ? "array" : data === null ? "null" : typeof data,
-    firstRow: Array.isArray(data) ? data[0] ?? null : data,
+    firstRow: Array.isArray(data) ? (data[0] ?? null) : data,
     firstRowKeys:
       data && typeof (Array.isArray(data) ? data[0] : data) === "object"
         ? Object.keys((Array.isArray(data) ? data[0] : data) as Record<string, unknown>)

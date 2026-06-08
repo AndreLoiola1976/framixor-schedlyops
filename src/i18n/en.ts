@@ -267,8 +267,7 @@ export const en = {
     notFoundDescription: "The page you're looking for doesn't exist or has been moved.",
     goDashboard: "Go to dashboard",
     errorTitle: "This page didn't load",
-    errorDescription:
-      "Something went wrong on our end. You can try refreshing or head back home.",
+    errorDescription: "Something went wrong on our end. You can try refreshing or head back home.",
     tryAgain: "Try again",
     goHome: "Go home",
   },

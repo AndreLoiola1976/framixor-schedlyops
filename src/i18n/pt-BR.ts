@@ -110,8 +110,7 @@ export const ptBR: Dictionary = {
       cancelDescription:
         "O horário voltará a ficar disponível. O cliente não será notificado automaticamente.",
       noShowTitle: "Marcar como não compareceu?",
-      noShowDescription:
-        "Isto registra o cliente como ausente. A ação é registrada no backend.",
+      noShowDescription: "Isto registra o cliente como ausente. A ação é registrada no backend.",
     },
   },
   bookingDialog: {
@@ -271,8 +270,7 @@ export const ptBR: Dictionary = {
     notFoundDescription: "A página que você procura não existe ou foi movida.",
     goDashboard: "Ir para o painel",
     errorTitle: "Esta página não carregou",
-    errorDescription:
-      "Algo deu errado do nosso lado. Tente recarregar ou voltar ao início.",
+    errorDescription: "Algo deu errado do nosso lado. Tente recarregar ou voltar ao início.",
     tryAgain: "Tentar de novo",
     goHome: "Ir ao início",
   },

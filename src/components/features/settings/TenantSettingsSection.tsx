@@ -45,7 +45,7 @@ export function TenantSettingsSection() {
   }
 
   const v = <K extends keyof TenantSettingsPatch>(k: K): TenantSettingsPatch[K] =>
-    (patch[k] !== undefined ? patch[k] : (data[k] as TenantSettingsPatch[K]));
+    patch[k] !== undefined ? patch[k] : (data[k] as TenantSettingsPatch[K]);
 
   const set = <K extends keyof TenantSettingsPatch>(k: K, val: TenantSettingsPatch[K]) =>
     setPatch((p) => ({ ...p, [k]: val }));
@@ -102,10 +102,7 @@ export function TenantSettingsSection() {
             max={100}
             value={v("late_cancel_fee_percent") ?? ""}
             onChange={(e) =>
-              set(
-                "late_cancel_fee_percent",
-                e.target.value === "" ? null : Number(e.target.value),
-              )
+              set("late_cancel_fee_percent", e.target.value === "" ? null : Number(e.target.value))
             }
           />
         </Field>
@@ -144,16 +141,11 @@ export function TenantSettingsSection() {
       </div>
 
       <div className="mt-4 flex items-center justify-end gap-2">
-        {isFetching ? (
-          <span className="text-xs text-muted-foreground">Syncing…</span>
-        ) : null}
+        {isFetching ? <span className="text-xs text-muted-foreground">Syncing…</span> : null}
         <Button variant="ghost" onClick={() => setPatch({})} disabled={!dirty || update.isPending}>
           Reset
         </Button>
-        <Button
-          onClick={() => update.mutate(patch)}
-          disabled={!dirty || update.isPending}
-        >
+        <Button onClick={() => update.mutate(patch)} disabled={!dirty || update.isPending}>
           {update.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Save changes
         </Button>
