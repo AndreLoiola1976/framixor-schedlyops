@@ -28,6 +28,8 @@ import { useTenant } from "@/hooks/useTenant";
 import { IS_SUPABASE } from "@/lib/env";
 
 function NotFoundComponent() {
+  // Avoid LocaleProvider dependency here so this also renders cleanly during
+  // SSR/error boundaries; copy is intentionally static English fallback.
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
