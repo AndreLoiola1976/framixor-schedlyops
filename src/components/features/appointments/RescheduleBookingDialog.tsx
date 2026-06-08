@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useRescheduleBooking } from "@/hooks/useSchedulingMutations";
 import { useTenant } from "@/hooks/useTenant";
+import { useT } from "@/i18n/useT";
 import { SlotTakenError } from "@/lib/booking-public";
 import { toUserMessage } from "@/lib/scheduling-errors";
 import type { Appointment } from "@/types/appointment";
@@ -56,6 +57,7 @@ function formatSlotTime(iso: string, timezone: string | undefined): string {
 
 export function RescheduleBookingDialog({ open, onOpenChange, appointment }: Props) {
   const tenant = useTenant();
+  const t = useT();
   const [date, setDate] = useState<Date | undefined>(() => new Date(appointment.startISO));
   const [slot, setSlot] = useState<string>("");
   const dateKey = useMemo(() => (date ? toDateKey(date) : undefined), [date]);
@@ -86,11 +88,11 @@ export function RescheduleBookingDialog({ open, onOpenChange, appointment }: Pro
     if (!slot) return;
     try {
       await mutation.mutateAsync({ bookingId: appointment.id, newStartsAt: slot });
-      toast.success("Booking rescheduled");
+      toast.success(t.bookingDialog.reschedule.success);
       onOpenChange(false);
     } catch (err) {
       if (err instanceof SlotTakenError) {
-        toast.error("That time was just taken. Pick another slot.");
+        toast.error(t.bookingDialog.reschedule.slotTaken);
         setSlot("");
       } else {
         toast.error(toUserMessage(err));
@@ -102,14 +104,12 @@ export function RescheduleBookingDialog({ open, onOpenChange, appointment }: Pro
     <Dialog open={open} onOpenChange={(next) => !mutation.isPending && onOpenChange(next)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Reschedule booking</DialogTitle>
-          <DialogDescription>
-            Same service and professional. Pick a new date and time.
-          </DialogDescription>
+          <DialogTitle>{t.bookingDialog.reschedule.title}</DialogTitle>
+          <DialogDescription>{t.bookingDialog.reschedule.description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label>New date</Label>
+            <Label>{t.bookingDialog.reschedule.newDate}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -121,7 +121,7 @@ export function RescheduleBookingDialog({ open, onOpenChange, appointment }: Pro
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                  {date ? format(date, "PPP") : <span>{t.bookingDialog.create.pickDate}</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -136,16 +136,16 @@ export function RescheduleBookingDialog({ open, onOpenChange, appointment }: Pro
             </Popover>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="rb-slot">New time</Label>
+            <Label htmlFor="rb-slot">{t.bookingDialog.reschedule.newTime}</Label>
             <Select value={slot} onValueChange={setSlot} disabled={slotsQuery.isFetching}>
               <SelectTrigger id="rb-slot">
                 <SelectValue
                   placeholder={
                     slotsQuery.isFetching
-                      ? "Loading slots…"
+                      ? t.bookingDialog.create.timeLoading
                       : slots.length === 0
-                        ? "No slots available"
-                        : "Select time"
+                        ? t.bookingDialog.create.timeNoSlots
+                        : t.bookingDialog.create.timeReady
                   }
                 />
               </SelectTrigger>
@@ -165,11 +165,11 @@ export function RescheduleBookingDialog({ open, onOpenChange, appointment }: Pro
               onClick={() => onOpenChange(false)}
               disabled={mutation.isPending}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={!slot || mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Reschedule
+              {t.bookingDialog.reschedule.submit}
             </Button>
           </DialogFooter>
         </form>

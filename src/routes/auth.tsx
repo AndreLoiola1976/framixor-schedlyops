@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { IS_SUPABASE } from "@/lib/env";
 import { getSupabase } from "@/lib/supabase";
 import { useSession } from "@/hooks/useSession";
+import { useT } from "@/i18n/useT";
 import { CalendarClock } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { session, loading } = useSession();
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -59,14 +61,14 @@ function AuthPage() {
               <CalendarClock className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-display text-lg font-semibold">SchedlyOps</h1>
-              <p className="text-xs text-muted-foreground">Operator sign in</p>
+              <h1 className="font-display text-lg font-semibold">{t.auth.title}</h1>
+              <p className="text-xs text-muted-foreground">{t.auth.subtitle}</p>
             </div>
           </div>
 
           <form onSubmit={onSubmit} className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.auth.email}</Label>
               <Input
                 id="email"
                 type="email"
@@ -77,7 +79,7 @@ function AuthPage() {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t.auth.password}</Label>
               <Input
                 id="password"
                 type="password"
@@ -93,7 +95,7 @@ function AuthPage() {
               </p>
             )}
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Signing in…" : "Sign in"}
+              {submitting ? t.auth.signingIn : t.auth.signIn}
             </Button>
           </form>
         </CardContent>

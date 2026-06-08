@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdateBooking } from "@/hooks/useSchedulingMutations";
+import { useT } from "@/i18n/useT";
 import { toUserMessage } from "@/lib/scheduling-errors";
 import type { Appointment } from "@/types/appointment";
 
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function EditBookingDialog({ open, onOpenChange, appointment }: Props) {
+  const t = useT();
   const [name, setName] = useState(appointment.customerName ?? "");
   const [phone, setPhone] = useState(appointment.customerPhone ?? "");
   const [note, setNote] = useState(appointment.notes ?? "");
@@ -60,19 +62,16 @@ export function EditBookingDialog({ open, onOpenChange, appointment }: Props) {
     <Dialog open={open} onOpenChange={(next) => !mutation.isPending && onOpenChange(next)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit booking details</DialogTitle>
-          <DialogDescription>
-            Customer details and notes only. Time, service, and professional changes use
-            reschedule.
-          </DialogDescription>
+          <DialogTitle>{t.bookingDialog.edit.title}</DialogTitle>
+          <DialogDescription>{t.bookingDialog.edit.description}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="eb-name">Customer name</Label>
+            <Label htmlFor="eb-name">{t.bookingDialog.edit.name}</Label>
             <Input id="eb-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="eb-phone">Customer phone</Label>
+            <Label htmlFor="eb-phone">{t.bookingDialog.edit.phone}</Label>
             <Input
               id="eb-phone"
               value={phone}
@@ -81,7 +80,7 @@ export function EditBookingDialog({ open, onOpenChange, appointment }: Props) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="eb-note">Note</Label>
+            <Label htmlFor="eb-note">{t.bookingDialog.edit.note}</Label>
             <Textarea
               id="eb-note"
               value={note}
@@ -96,11 +95,11 @@ export function EditBookingDialog({ open, onOpenChange, appointment }: Props) {
               onClick={() => onOpenChange(false)}
               disabled={mutation.isPending}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save changes
+              {t.common.save}
             </Button>
           </DialogFooter>
         </form>
