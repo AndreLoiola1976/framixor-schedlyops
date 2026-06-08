@@ -8,8 +8,10 @@ import {
   Scripts,
   Link,
 } from "@tanstack/react-router";
+import { useState } from "react";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
+import { DevDiagnostics } from "@/components/common/DevDiagnostics";
 
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -19,8 +21,15 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LocaleProvider } from "@/i18n/LocaleProvider";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { BookingDialogContext } from "@/hooks/useBookingDialog";
+import { CreateBookingDialog } from "@/components/features/appointments/CreateBookingDialog";
+import { useSession } from "@/hooks/useSession";
+import { useTenant } from "@/hooks/useTenant";
+import { IS_SUPABASE } from "@/lib/env";
 
 function NotFoundComponent() {
+  // Avoid LocaleProvider dependency here so this also renders cleanly during
+  // SSR/error boundaries; copy is intentionally static English fallback.
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -137,6 +146,7 @@ function RootComponent() {
               <AppShell />
             </AuthGate>
             <Toaster />
+            <DevDiagnostics />
           </TooltipProvider>
         </ThemeProvider>
       </LocaleProvider>
@@ -146,19 +156,27 @@ function RootComponent() {
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const { session } = useSession();
+  const tenant = useTenant();
+  const canCreate = IS_SUPABASE && !!session?.user?.id && !!tenant.slug;
+
   if (pathname === "/auth") {
     return <Outlet />;
   }
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <TopBar />
-        <TenantMismatchBanner />
-        <main className="flex-1 bg-background">
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <BookingDialogContext.Provider value={{ open: bookingOpen, setOpen: setBookingOpen }}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <TopBar />
+          <TenantMismatchBanner />
+          <main className="flex-1 bg-background">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+      {canCreate && <CreateBookingDialog open={bookingOpen} onOpenChange={setBookingOpen} />}
+    </BookingDialogContext.Provider>
   );
 }

@@ -3,6 +3,13 @@ import { toast } from "sonner";
 import { dataSource } from "@/lib/data-source";
 import { qk } from "@/lib/query-keys";
 import { toUserMessage } from "@/lib/scheduling-errors";
+import {
+  operatorCancelBooking,
+  operatorCompleteBooking,
+  operatorMarkNoShow,
+  operatorRescheduleBooking,
+  operatorUpdateBooking,
+} from "@/lib/booking-public";
 import type {
   ProfessionalCreateInput,
   ProfessionalUpdateInput,
@@ -95,6 +102,80 @@ export function useUpsertWorkingHours() {
       qc.invalidateQueries({ queryKey: qk.workingHours(variables.professionalId) });
       qc.invalidateQueries({ queryKey: qk.workingHours() });
       toast.success("Working hours saved");
+    },
+    onError,
+  });
+}
+
+// -------- Booking lifecycle (migration 0023) --------
+
+function invalidateBookingCaches(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: qk.bookings });
+  qc.invalidateQueries({ queryKey: qk.dashboardMetrics });
+  qc.invalidateQueries({ queryKey: ["available-slots"] });
+}
+
+export function useCancelBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => operatorCancelBooking(bookingId),
+    onSuccess: () => {
+      invalidateBookingCaches(qc);
+      toast.success("Booking cancelled");
+    },
+    onError,
+  });
+}
+
+export function useCompleteBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => operatorCompleteBooking(bookingId),
+    onSuccess: () => {
+      invalidateBookingCaches(qc);
+      toast.success("Marked completed");
+    },
+    onError,
+  });
+}
+
+export function useMarkNoShow() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => operatorMarkNoShow(bookingId),
+    onSuccess: () => {
+      invalidateBookingCaches(qc);
+      toast.success("Marked no-show");
+    },
+    onError,
+  });
+}
+
+export function useRescheduleBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { bookingId: string; newStartsAt: string }) =>
+      operatorRescheduleBooking(input),
+    onSuccess: () => {
+      invalidateBookingCaches(qc);
+      toast.success("Booking rescheduled");
+    },
+    onError,
+  });
+}
+
+export function useUpdateBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      bookingId: string;
+      customerName?: string;
+      customerPhone?: string;
+      note?: string;
+    }) => operatorUpdateBooking(input),
+    onSuccess: () => {
+      invalidateBookingCaches(qc);
+      toast.success("Booking updated");
     },
     onError,
   });

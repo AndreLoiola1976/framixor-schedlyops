@@ -22,7 +22,11 @@ function detectInitialLocale(): Locale {
     // ignore
   }
   const nav = typeof navigator !== "undefined" ? navigator.language : "";
+  const full = nav;
+  if (full && full in locales) return full as Locale;
   const short = nav.slice(0, 2).toLowerCase();
+  // Map pt → pt-BR (only Brazilian Portuguese is shipped).
+  if (short === "pt" && "pt-BR" in locales) return "pt-BR" as Locale;
   if (short in locales) return short as Locale;
   return defaultLocale;
 }

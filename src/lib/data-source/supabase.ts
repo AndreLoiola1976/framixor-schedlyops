@@ -36,11 +36,33 @@ async function call<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 
 type TenantRow = { tenant_id: string; slug: string; name: string; is_active: boolean };
 
+function safeInitials(name: unknown): string {
+  // Defensive: coerce non-string inputs (null, undefined, numbers, objects)
+  // to a string before calling .split — prevents
+  // "Cannot read properties of undefined (reading 'split')" from leaking out
+  // through the tenant query.
+  const str = typeof name === "string" ? name : "";
+  if (!str.trim()) return "--";
+  try {
+    const initials = str
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((p) => p[0] ?? "")
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+    return initials || "--";
+  } catch {
+    return "--";
+  }
+}
+
 function adaptTenant(row: TenantRow): TenantInfo {
+  const name = typeof row?.name === "string" && row.name.trim() ? row.name : "Workspace";
   return {
-    id: row.tenant_id,
-    name: row.name,
-    slug: row.slug,
+    id: typeof row?.tenant_id === "string" ? row.tenant_id : "",
+    name,
+    slug: typeof row?.slug === "string" ? row.slug : "",
     industry: "",
     email: "",
     phone: "",
@@ -48,16 +70,10 @@ function adaptTenant(row: TenantRow): TenantInfo {
     timezone: "UTC",
     currency: "USD",
     locale: "en-US",
-    logoInitials:
-      row.name
-        .split(/\s+/)
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase() || "??",
+    logoInitials: safeInitials(name),
     hours: [],
     isLive: true,
-    isActive: row.is_active,
+    isActive: row?.is_active ?? false,
   };
 }
 
@@ -101,13 +117,7 @@ function adaptProfessional(row: ProfessionalRow, tenantId: string): Professional
     role: "",
     email: "",
     phone: "",
-    initials:
-      row.name
-        .split(/\s+/)
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase() || "?",
+    initials: safeInitials(row.name),
     specialties: [],
     workingDays: "",
     workingHours: "",
@@ -140,48 +150,138 @@ function adaptWorkingHours(row: WorkingHoursRow): WorkingHour {
 type BookingRow = {
   id: string;
   professional_id: string;
-  service_id: string;
+  // service_id is nullable for block rows (per documented 0018 contract). Until
+  // 0018 lands on DEV, real rows still have a service_id; we tolerate null defensively.
+  service_id: string | null;
   starts_at: string;
   ends_at: string;
-  customer_name: string;
-  customer_phone: string;
-  status: "confirmed" | "cancelled";
+  customer_name: string | null;
+  customer_phone: string | null;
+  status: "confirmed" | "cancelled" | string;
   created_at: string;
+  // Optional fields surfaced when present. Future contract: type is
+  // "appointment" | "block"; widened to tolerate any unknown value defensively.
+  type?: string | null;
+  source?: string | null;
+  note?: string | null;
 };
 
 function adaptBooking(row: BookingRow, tenantId: string): Appointment {
-  // Synthesize a stable clientId from phone so the existing UI keys work; no
-  // customer entity exists backend-side (§9).
-  const clientId = `phone:${row.customer_phone}`;
+  // Block rows have no customer — key by booking id so they don't collide in
+  // client maps. Appointments key by phone so the existing UI lookups work.
+  const clientId = row.customer_phone ? `phone:${row.customer_phone}` : `block:${row.id}`;
+  const allowed: Appointment["status"][] = ["confirmed", "cancelled", "completed", "no_show"];
+  const status: Appointment["status"] = (allowed as string[]).includes(row.status)
+    ? (row.status as Appointment["status"])
+    : "confirmed";
   return {
     id: row.id,
     tenantId,
     clientId,
     professionalId: row.professional_id,
-    serviceId: row.service_id,
+    serviceId: row.service_id ?? "",
     startISO: row.starts_at,
     endISO: row.ends_at,
-    status: row.status === "confirmed" ? "confirmed" : "cancelled",
+    status,
     priceCents: 0,
-    notes: row.customer_name, // displayed where the UI shows client name
+    notes: row.note ?? row.customer_name ?? "",
+    type: row.type === "block" ? "block" : "appointment",
+    source: row.source ?? null,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
   };
+}
+
+/**
+ * operator_current_tenant is a TABLE-returning RPC: PostgREST returns an
+ * array (0 or 1 rows). Empty array OR a `no_tenant_context` error means
+ * "authenticated but not linked to a tenant" — a valid state, not an error.
+ * Reserve thrown errors for real RPC/network/permission failures.
+ */
+export type TenantDiagnostic = {
+  at: string;
+  raw: unknown;
+  rawCount: number | null;
+  error: string | null;
+  reason: "OK" | "NO_TENANT_LINK" | "RPC_ERROR" | "PENDING";
+};
+
+let lastTenantDiagnostic: TenantDiagnostic = {
+  at: new Date().toISOString(),
+  raw: null,
+  rawCount: null,
+  error: null,
+  reason: "PENDING",
+};
+
+export function getLastTenantDiagnostic(): TenantDiagnostic {
+  return lastTenantDiagnostic;
+}
+
+async function fetchTenantRow(): Promise<TenantRow | null> {
+  const { data, error } = await rpc<TenantRow | TenantRow[]>("operator_current_tenant");
+  const rawCount = Array.isArray(data) ? data.length : data ? 1 : 0;
+
+  if (error) {
+    const msg = error.message ?? "unknown rpc error";
+    if (msg.toLowerCase().includes("no_tenant_context")) {
+      lastTenantDiagnostic = {
+        at: new Date().toISOString(),
+        raw: data,
+        rawCount,
+        error: null,
+        reason: "NO_TENANT_LINK",
+      };
+      return null;
+    }
+    lastTenantDiagnostic = {
+      at: new Date().toISOString(),
+      raw: data,
+      rawCount,
+      error: msg,
+      reason: "RPC_ERROR",
+    };
+    throw new Error(msg);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  lastTenantDiagnostic = {
+    at: new Date().toISOString(),
+    raw: data,
+    rawCount,
+    error: null,
+    reason: row?.tenant_id ? "OK" : "NO_TENANT_LINK",
+  };
+  return row ?? null;
 }
 
 let cachedTenantId: string | null = null;
 async function tenantId(): Promise<string> {
   if (cachedTenantId) return cachedTenantId;
-  const row = await call<TenantRow>("operator_current_tenant");
+  const row = await fetchTenantRow();
+  if (!row?.tenant_id) throw new Error("no_tenant_context");
   cachedTenantId = row.tenant_id;
   return cachedTenantId;
 }
 
 export function resetTenantCache(): void {
   cachedTenantId = null;
+  lastTenantDiagnostic = {
+    at: new Date().toISOString(),
+    raw: null,
+    rawCount: null,
+    error: null,
+    reason: "PENDING",
+  };
 }
 
 export const supabaseAdapter: DataSourceAdapter = {
-  async getTenant(): Promise<TenantInfo> {
-    const row = await call<TenantRow>("operator_current_tenant");
+  async getTenant(): Promise<TenantInfo | null> {
+    const row = await fetchTenantRow();
+    if (!row?.tenant_id) {
+      cachedTenantId = null;
+      return null;
+    }
     cachedTenantId = row.tenant_id;
     return adaptTenant(row);
   },

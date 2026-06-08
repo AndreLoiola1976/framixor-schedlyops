@@ -1,8 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AppointmentsList } from "@/components/features/appointments/AppointmentsList";
 import { useT } from "@/i18n/useT";
 
@@ -25,25 +22,7 @@ function AppointmentsPage() {
   const t = useT();
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
-      <PageHeader
-        title={t.appointments.title}
-        subtitle={t.appointments.subtitle}
-        actions={
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button size="sm" className="gap-1.5 pointer-events-none opacity-60" disabled>
-                  <Plus className="h-4 w-4" />
-                  {t.appointments.new}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs text-xs">
-              {t.topbar.newAppointmentDisabledTooltip}
-            </TooltipContent>
-          </Tooltip>
-        }
-      />
+      <PageHeader title={t.appointments.title} subtitle={t.appointments.subtitle} />
       <AppointmentsList />
     </div>
   );
