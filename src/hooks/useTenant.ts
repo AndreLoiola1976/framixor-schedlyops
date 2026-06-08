@@ -11,12 +11,23 @@ import type { TenantInfo } from "@/lib/data-source/types";
 // loading / errored tenant lookup never crashes downstream `.split()` /
 // initials / name formatting and never leaks the mock brand.
 const mockFallback: TenantInfo = { ...activeTenant, isLive: false, isActive: true };
+// Supabase-mode fallback: deliberately neutral. Never inherit mock contact /
+// timezone / address / currency from activeTenant — those are demo data and
+// would otherwise leak into a real tenant's UI whenever the backend payload
+// is missing fields.
 const supabaseFallback: TenantInfo = {
-  ...activeTenant,
   id: "",
   name: "Workspace",
   slug: "",
+  industry: "",
+  email: "",
+  phone: "",
+  address: "",
+  timezone: "",
+  currency: "",
+  locale: "",
   logoInitials: "--",
+  hours: [],
   isLive: false,
   isActive: false,
 };
