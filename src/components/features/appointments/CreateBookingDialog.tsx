@@ -31,6 +31,7 @@ import { useProfessionals } from "@/hooks/useProfessionals";
 import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { useCreateBooking } from "@/hooks/useCreateBooking";
 import { useTenant } from "@/hooks/useTenant";
+import { useT } from "@/i18n/useT";
 import { getLastAvailableSlotsDebug, SlotTakenError } from "@/lib/booking-public";
 import { toUserMessage } from "@/lib/scheduling-errors";
 
@@ -61,6 +62,7 @@ function formatSlotTime(iso: string, timezone: string | undefined): string {
 
 export function CreateBookingDialog({ open, onOpenChange }: Props) {
   const tenant = useTenant();
+  const t = useT();
   const services = useServices();
   const professionals = useProfessionals();
 
@@ -143,10 +145,10 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
         customerPhone: customerPhone.trim(),
       });
       setResult(res);
-      toast.success("Booking created");
+      toast.success(t.bookingDialog.create.success);
     } catch (err) {
       if (err instanceof SlotTakenError) {
-        toast.error("This time is no longer available. Please choose another slot.");
+        toast.error(t.bookingDialog.create.slotTaken);
         setSlot("");
       } else {
         toast.error(toUserMessage(err));
@@ -158,9 +160,9 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     if (!manageUrl) return;
     try {
       await navigator.clipboard.writeText(manageUrl);
-      toast.success("Customer manage link copied");
+      toast.success(t.bookingDialog.create.manageLinkCopied);
     } catch {
-      toast.error("Copy failed");
+      toast.error(t.bookingDialog.create.copyFailed);
     }
   }
 
@@ -304,24 +306,22 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{result ? "Booking created" : "Create booking"}</DialogTitle>
+          <DialogTitle>{result ? t.bookingDialog.create.titleDone : t.bookingDialog.create.title}</DialogTitle>
           <DialogDescription>
-            {result
-              ? "Share the manage link with the customer. It is only shown once."
-              : "Capture a phone booking. Availability and conflicts are checked by the server."}
+            {result ? t.bookingDialog.create.descriptionDone : t.bookingDialog.create.description}
           </DialogDescription>
         </DialogHeader>
 
         {result ? (
           <div className="flex flex-col gap-4">
             <div className="rounded border border-border bg-muted/30 p-3 text-sm">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Booking ID</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t.bookingDialog.create.bookingId}</p>
               <p className="mt-1 font-mono text-xs break-all">{result.bookingId || "—"}</p>
             </div>
             {manageUrl ? (
               <div className="rounded border border-border bg-muted/30 p-3">
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Customer manage link
+                  {t.bookingDialog.create.manageLink}
                 </p>
                 <div className="mt-1 flex items-start gap-2">
                   <code className="flex-1 break-all rounded bg-background/60 p-1.5 text-xs">
@@ -334,17 +334,16 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
                     onClick={copyManageLink}
                     className="shrink-0"
                   >
-                    <Copy className="mr-1 h-3 w-3" /> Copy
+                    <Copy className="mr-1 h-3 w-3" /> {t.bookingDialog.create.copy}
                   </Button>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">
-                  This token is only returned at creation. It can&apos;t be retrieved later.
+                  {t.bookingDialog.create.manageLinkOnce}
                 </p>
               </div>
             ) : (
               <p className="rounded border border-warning/30 bg-warning/10 p-3 text-xs text-warning">
-                No manage_token returned by the backend — customer self-service link is unavailable
-                for this booking.
+                {t.bookingDialog.create.noToken}
               </p>
             )}
             <DialogFooter>
@@ -355,10 +354,10 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
                   resetForm();
                 }}
               >
-                Create another
+                {t.bookingDialog.create.createAnother}
               </Button>
               <Button type="button" onClick={() => handleOpenChange(false)}>
-                Done
+                {t.bookingDialog.create.done}
               </Button>
             </DialogFooter>
           </div>
@@ -368,10 +367,10 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-service">Service</Label>
+              <Label htmlFor="cb-service">{t.bookingDialog.create.service}</Label>
               <Select value={serviceId} onValueChange={setServiceId}>
                 <SelectTrigger id="cb-service">
-                  <SelectValue placeholder="Select service" />
+                  <SelectValue placeholder={t.bookingDialog.create.serviceSelect} />
                 </SelectTrigger>
                 <SelectContent>
                   {activeServices.map((s) => (
@@ -384,10 +383,10 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-pro">Professional</Label>
+              <Label htmlFor="cb-pro">{t.bookingDialog.create.professional}</Label>
               <Select value={professionalId} onValueChange={setProfessionalId}>
                 <SelectTrigger id="cb-pro">
-                  <SelectValue placeholder="Select professional" />
+                  <SelectValue placeholder={t.bookingDialog.create.professionalSelect} />
                 </SelectTrigger>
                 <SelectContent>
                   {activeProfessionals.map((p) => (
@@ -402,7 +401,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label>Date</Label>
+              <Label>{t.bookingDialog.create.date}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -414,7 +413,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    {date ? format(date, "PPP") : <span>{t.bookingDialog.create.pickDate}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -430,18 +429,18 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-slot">Time slot</Label>
+              <Label htmlFor="cb-slot">{t.bookingDialog.create.time}</Label>
               <Select value={slot} onValueChange={setSlot} disabled={!slotsReady || slotsLoading}>
                 <SelectTrigger id="cb-slot">
                   <SelectValue
                     placeholder={
                       !slotsReady
-                        ? "Pick service, pro, and date"
+                        ? t.bookingDialog.create.timePrereq
                         : slotsLoading
-                          ? "Loading slots…"
+                          ? t.bookingDialog.create.timeLoading
                           : slots.length === 0
-                            ? "No slots available"
-                            : "Select time"
+                            ? t.bookingDialog.create.timeNoSlots
+                            : t.bookingDialog.create.timeReady
                     }
                   />
                 </SelectTrigger>
@@ -458,7 +457,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-name">Customer name</Label>
+              <Label htmlFor="cb-name">{t.bookingDialog.create.customerName}</Label>
               <Input
                 id="cb-name"
                 value={customerName}
@@ -468,7 +467,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cb-phone">Customer phone</Label>
+              <Label htmlFor="cb-phone">{t.bookingDialog.create.customerPhone}</Label>
               <Input
                 id="cb-phone"
                 value={customerPhone}
@@ -482,7 +481,7 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
 
           {!tenant.slug && (
             <p className="text-xs text-destructive">
-              No tenant resolved — sign in and ensure your account is linked to a workspace.
+              {t.bookingDialog.create.missingTenant}
             </p>
           )}
 
@@ -520,11 +519,11 @@ export function CreateBookingDialog({ open, onOpenChange }: Props) {
               onClick={() => handleOpenChange(false)}
               disabled={createBooking.isPending}
             >
-              Cancel
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={!canSubmit}>
               {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create booking
+              {t.bookingDialog.create.submit}
             </Button>
           </DialogFooter>
         </form>
