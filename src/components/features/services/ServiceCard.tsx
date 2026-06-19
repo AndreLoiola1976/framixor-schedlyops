@@ -92,6 +92,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
               variant="outline"
               className="gap-1.5"
               onClick={() => setEditOpen(true)}
+              disabled={disable.isPending || update.isPending}
             >
               <Pencil className="h-3.5 w-3.5" />
               {t.common.edit}
@@ -102,11 +103,31 @@ export function ServiceCard({ service }: ServiceCardProps) {
                 variant="ghost"
                 className="gap-1.5 text-muted-foreground"
                 onClick={() => setConfirmOpen(true)}
+                disabled={disable.isPending || update.isPending}
               >
                 <PowerOff className="h-3.5 w-3.5" />
                 {t.common.disable}
               </Button>
-            ) : null}
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() =>
+                  update.mutate({
+                    id: service.id,
+                    name: service.name,
+                    durationMinutes: service.durationMinutes,
+                    priceCents: service.priceCents,
+                    isActive: true,
+                  })
+                }
+                disabled={disable.isPending || update.isPending}
+              >
+                <Power className="h-3.5 w-3.5" />
+                {t.common.enable}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
