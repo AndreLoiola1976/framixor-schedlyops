@@ -38,3 +38,13 @@ service was disabled, there was no way to reactivate it from the UI.
 - Backend unchanged: `operator_update_service` already accepts `p_is_active`.
 
 No UI changes, no provider/route/component/config/test refactors.
+### 6. Real Settings loop (tenant profile)
+`BusinessProfileForm` is editable again, backed by the confirmed
+`core.operator_(get|update)_tenant_profile` RPCs. `BrandingSection` gained a
+`logo_url` text input with live preview (no upload). `getTenant()` composes
+`operator_current_tenant + operator_get_tenant_profile +
+operator_get_tenant_settings`, so `useTenant()` consumers (TopBar,
+booking dialogs, branding) reflect saved edits without a hard reload.
+`public_email` and `currency` remain read-only this pass; `tenants.name` is
+not written — `display_name` is the public branding string. No schema, RLS,
+or migration changes.

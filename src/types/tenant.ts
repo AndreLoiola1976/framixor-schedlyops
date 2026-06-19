@@ -23,4 +23,11 @@ export interface Tenant {
   logoInitials: string;
   hours: BusinessHours[];
   branding?: Branding;
+  // Optional public profile fields composed from core.operator_get_tenant_profile.
+  displayName?: string;
+  tagline?: string;
+  description?: string;
+  websiteUrl?: string;
+  logoUrl?: string;
+  countryCode?: string;
 }
