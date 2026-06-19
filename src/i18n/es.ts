@@ -180,7 +180,8 @@ export const es: Dictionary = {
     form: {
       name: "Nombre",
       durationMinutes: "Duración (minutos)",
-      priceCents: "Precio (céntimos)",
+      price: "Precio",
+      priceInvalid: "Ingresa un precio válido",
     },
   },
   professionals: {

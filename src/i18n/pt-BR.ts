@@ -180,7 +180,8 @@ export const ptBR: Dictionary = {
     form: {
       name: "Nome",
       durationMinutes: "Duração (minutos)",
-      priceCents: "Preço (centavos)",
+      price: "Preço",
+      priceInvalid: "Informe um preço válido",
     },
   },
   professionals: {

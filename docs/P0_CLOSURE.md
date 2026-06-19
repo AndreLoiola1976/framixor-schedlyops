@@ -58,6 +58,27 @@ Validated in preview against Supabase DEV.
 - Team / Users invite UI.
 - Self-service `/activate` flow.
 
+## Post-closure frontend fix (price input)
+
+- **Bug:** `ServiceFormDialog` bound the price input 1:1 to `priceCents`.
+  Users entered `25` expecting $25.00, but the app sent 25 cents to the
+  backend. `formatCurrency` used `maximumFractionDigits: 0`, so 25 cents
+  rendered as "$0", making it look like the price was zeroed.
+- **Fix files:**
+  - `src/components/features/services/ServiceFormDialog.tsx` — input now
+    uses `type="text"` with `inputMode="decimal"`; value is normalized
+    (comma→dot), validated, and converted to cents via
+    `Math.round(parsed * 100)` before calling existing create/update
+    mutations. Edit mode pre-fills with `(priceCents / 100).toFixed(2)`.
+  - `src/lib/format.ts` — removed `maximumFractionDigits: 0` from
+    `formatCurrency` so cents display correctly everywhere (service cards,
+    dashboard KPIs, top services).
+  - `src/i18n/en.ts`, `es.ts`, `pt-BR.ts` — renamed label key from
+    `priceCents` to `price`; added `priceInvalid` error string.
+- **Backend unchanged:** `operator_create_service` / `operator_update_service`
+  already accepted `p_price_cents` correctly. No schema, RPC, RLS, or
+  migration changes were made.
+
 ## Backend safety confirmation
 
 No Supabase backend, schema, RLS, RPC, migration, auth, storage, seed, or

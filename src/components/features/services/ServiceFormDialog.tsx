@@ -27,29 +27,46 @@ export function ServiceFormDialog({ open, onOpenChange, service }: Props) {
 
   const [name, setName] = useState("");
   const [duration, setDuration] = useState(30);
-  const [price, setPrice] = useState(0);
+  const [priceInput, setPriceInput] = useState("");
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setName(service?.name ?? "");
       setDuration(service?.durationMinutes ?? 30);
-      setPrice(service?.priceCents ?? 0);
+      setPriceInput(service ? (service.priceCents / 100).toFixed(2) : "");
+      setPriceError(null);
     }
   }, [open, service]);
 
   const pending = create.isPending || update.isPending;
 
+  function validatePrice(input: string): number | null {
+    const normalized = input.trim().replace(",", ".");
+    const parsed = Number(normalized);
+    if (normalized === "" || !Number.isFinite(parsed) || parsed < 0) {
+      return null;
+    }
+    return Math.round(parsed * 100);
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setPriceError(null);
+    const priceCents = validatePrice(priceInput);
+    if (priceCents === null) {
+      setPriceError(t.services.form.priceInvalid);
+      return;
+    }
     if (editing && service) {
       await update.mutateAsync({
         id: service.id,
         name,
         durationMinutes: duration,
-        priceCents: price,
+        priceCents,
       });
     } else {
-      await create.mutateAsync({ name, durationMinutes: duration, priceCents: price });
+      await create.mutateAsync({ name, durationMinutes: duration, priceCents });
     }
     onOpenChange(false);
   }
@@ -78,15 +95,26 @@ export function ServiceFormDialog({ open, onOpenChange, service }: Props) {
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="svc-price">{t.services.form.priceCents}</Label>
+              <Label htmlFor="svc-price">{t.services.form.price}</Label>
               <Input
                 id="svc-price"
-                type="number"
-                min={0}
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                required
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder="47.90"
+                aria-invalid={!!priceError}
+                aria-describedby={priceError ? "svc-price-error" : undefined}
+                value={priceInput}
+                onChange={(e) => {
+                  setPriceInput(e.target.value);
+                  if (priceError) setPriceError(null);
+                }}
               />
+              {priceError ? (
+                <p id="svc-price-error" className="text-xs text-destructive">
+                  {priceError}
+                </p>
+              ) : null}
             </div>
           </div>
           <DialogFooter>

@@ -177,7 +177,8 @@ export const en = {
     form: {
       name: "Name",
       durationMinutes: "Duration (minutes)",
-      priceCents: "Price (cents)",
+      price: "Price",
+      priceInvalid: "Enter a valid price",
     },
   },
   professionals: {
