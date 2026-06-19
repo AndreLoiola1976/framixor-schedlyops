@@ -29,6 +29,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
   const proMap = useProfessionalMap();
   const pros = service.professionalIds.map((id) => proMap[id]).filter(Boolean);
   const disable = useDisableService();
+  const update = useUpdateService();
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
