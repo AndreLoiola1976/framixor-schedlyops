@@ -27,4 +27,14 @@ cents render correctly in service cards and dashboard KPIs. i18n label renamed
 from `priceCents` to `price` across EN/ES/pt-BR with a new `priceInvalid` key.
 No backend/schema/RPC changes.
 
+### 5. Service activation toggle fix
+`ServiceCard` only showed a **Disable** button for active services. Once a
+service was disabled, there was no way to reactivate it from the UI.
+- Added an **Enable** button (icon `Power`) that appears when `service.active`
+  is `false`, calling `useUpdateService()` with the full service payload plus
+  `isActive: true` to preserve all fields.
+- Action buttons are disabled while either mutation is pending.
+- Added `common.enable` to EN/ES/pt-BR dictionaries.
+- Backend unchanged: `operator_update_service` already accepts `p_is_active`.
+
 No UI changes, no provider/route/component/config/test refactors.
