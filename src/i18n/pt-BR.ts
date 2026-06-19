@@ -41,6 +41,7 @@ export const ptBR: Dictionary = {
     add: "Adicionar",
     delete: "Excluir",
     disable: "Desativar",
+    enable: "Ativar",
     confirm: "Confirmar",
     none: "Nenhum",
     today: "Hoje",
