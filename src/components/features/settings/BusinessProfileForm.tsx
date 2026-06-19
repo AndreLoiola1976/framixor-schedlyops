@@ -151,7 +151,7 @@ export function BusinessProfileForm() {
         <Field label="Country code">
           <Input
             value={v("country_code")}
-            placeholder="BR"
+            placeholder={countryPlaceholder}
             onChange={(e) => set("country_code", e.target.value)}
           />
         </Field>
