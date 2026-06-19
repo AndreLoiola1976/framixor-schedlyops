@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, Users, Pencil, PowerOff } from "lucide-react";
+import { Clock, Users, Pencil, Power, PowerOff } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import type { Service } from "@/types/service";
 import { formatCurrency, formatDuration } from "@/lib/format";
 import { useT } from "@/i18n/useT";
 import { useProfessionalMap } from "@/hooks/useProfessionals";
-import { useDisableService } from "@/hooks/useSchedulingMutations";
+import { useDisableService, useUpdateService } from "@/hooks/useSchedulingMutations";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 
 interface ServiceCardProps {
