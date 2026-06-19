@@ -57,9 +57,31 @@ export function BusinessProfileForm() {
 
   const dirty = Object.keys(patch).length > 0;
 
+  const country = (v("country_code") || tenant.countryCode || "").toUpperCase();
+  const phonePlaceholder =
+    country === "US"
+      ? "+1 203 555 0199"
+      : country === "BR"
+        ? "+55 11 90000-0000"
+        : "+1 555 000 0000";
+  const countryPlaceholder = country || "US";
+
+  const normalizeUSPhone = (raw: string): string => {
+    const trimmed = raw.trim();
+    if (country !== "US") return trimmed;
+    const digits = trimmed.replace(/\D/g, "");
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+    return trimmed;
+  };
+
   const onSave = () => {
     if (!dirty) return;
-    update.mutate(patch);
+    const next: TenantProfilePatch = { ...patch };
+    if (typeof next.public_phone === "string" && next.public_phone.trim() !== "") {
+      next.public_phone = normalizeUSPhone(next.public_phone);
+    }
+    update.mutate(next);
   };
 
   return (
