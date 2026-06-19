@@ -8,7 +8,6 @@ export function formatCurrency(
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    maximumFractionDigits: 0,
   }).format(cents / 100);
 }
 
