@@ -79,6 +79,22 @@ Validated in preview against Supabase DEV.
   already accepted `p_price_cents` correctly. No schema, RPC, RLS, or
   migration changes were made.
 
+## Post-closure frontend fix (service activation toggle)
+
+- **Bug:** The Services screen only rendered a **Disable** button for active
+  services. Once disabled, there was no UI affordance to reactivate a service.
+- **Fix file:** `src/components/features/services/ServiceCard.tsx`
+  - Added `useUpdateService()` hook call alongside `useDisableService()`.
+  - When `service.active === false`, the card now shows an **Enable** button
+    (icon `Power`). Clicking it calls `updateService({ id, name,
+    durationMinutes, priceCents, isActive: true })`, preserving all existing
+    fields while reactivating the service.
+  - All action buttons (Edit, Disable, Enable) are disabled while either
+    mutation is pending to prevent race conditions.
+- **i18n:** Added `common.enable` to `en.ts`, `es.ts`, and `pt-BR.ts`.
+- **Backend unchanged:** `operator_update_service` already accepted `p_is_active`.
+  No schema, RPC, RLS, or migration changes were made.
+
 ## Backend safety confirmation
 
 No Supabase backend, schema, RLS, RPC, migration, auth, storage, seed, or
