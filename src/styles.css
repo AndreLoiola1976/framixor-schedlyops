@@ -197,3 +197,64 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* ============================================================
+ * Demo Barber theme — additive third token set (Demo Ready phase).
+ * Selector: html.theme-demo-barber. Does NOT modify :root (light) or .dark.
+ * Tokens derived from spec: bg 20 12% 8%, fg 35 33% 96%, primary 43 70% 51%,
+ * accent 43 70% 51%, muted 20 6% 18%, border 20 10% 22%, primaryStyle gradient.
+ * ============================================================ */
+.theme-demo-barber {
+  --background: hsl(20 12% 8%);
+  --foreground: hsl(35 33% 96%);
+
+  --card: hsl(20 10% 12%);
+  --card-foreground: hsl(35 33% 96%);
+
+  --popover: hsl(20 10% 12%);
+  --popover-foreground: hsl(35 33% 96%);
+
+  --primary: hsl(43 70% 51%);
+  --primary-foreground: hsl(20 12% 8%);
+
+  --secondary: hsl(20 6% 18%);
+  --secondary-foreground: hsl(35 33% 96%);
+
+  --muted: hsl(20 6% 18%);
+  --muted-foreground: hsl(35 12% 72%);
+
+  --accent: hsl(43 70% 51%);
+  --accent-foreground: hsl(20 12% 8%);
+
+  --destructive: hsl(0 72% 55%);
+  --destructive-foreground: hsl(35 33% 96%);
+
+  --success: hsl(150 55% 50%);
+  --success-foreground: hsl(20 12% 8%);
+
+  --warning: hsl(38 92% 55%);
+  --warning-foreground: hsl(20 12% 8%);
+
+  --border: hsl(20 10% 22%);
+  --input: hsl(20 10% 22%);
+  --ring: hsl(43 70% 51%);
+
+  --chart-1: hsl(43 70% 51%);
+  --chart-2: hsl(33 85% 45%);
+  --chart-3: hsl(150 55% 50%);
+  --chart-4: hsl(200 65% 55%);
+  --chart-5: hsl(320 60% 60%);
+
+  --sidebar: hsl(20 12% 10%);
+  --sidebar-foreground: hsl(35 33% 96%);
+  --sidebar-primary: hsl(43 70% 51%);
+  --sidebar-primary-foreground: hsl(20 12% 8%);
+  --sidebar-accent: hsl(20 6% 18%);
+  --sidebar-accent-foreground: hsl(35 33% 96%);
+  --sidebar-border: hsl(20 10% 22%);
+  --sidebar-ring: hsl(43 70% 51%);
+
+  /* Gradient + elevation tokens for premium accents. */
+  --gradient-primary: linear-gradient(135deg, hsl(43 70% 56%), hsl(33 85% 45%));
+  --shadow-elegant: 0 10px 30px -10px hsl(43 70% 51% / 0.35);
+}

@@ -16,4 +16,25 @@ Change `"name": "tanstack_start_ts"` to `"name": "schedlyops"`.
 ### 3. Verification
 Run typecheck, lint, check:secrets, test, and build to confirm all checks pass.
 
+### 4. Service price input fix
+`ServiceFormDialog` now treats the price field as a normal monetary input
+(`type="text"`, `inputMode="decimal"`) instead of raw cents. Comma decimals
+(e.g. `47,90`) are normalized to dot before parsing. Invalid/empty/negative
+values block submit with an inline error. The value is converted to cents with
+`Math.round(parsed * 100)` and sent through the existing `priceCents` mutation
+contract unchanged. `formatCurrency` no longer truncates fraction digits, so
+cents render correctly in service cards and dashboard KPIs. i18n label renamed
+from `priceCents` to `price` across EN/ES/pt-BR with a new `priceInvalid` key.
+No backend/schema/RPC changes.
+
+### 5. Service activation toggle fix
+`ServiceCard` only showed a **Disable** button for active services. Once a
+service was disabled, there was no way to reactivate it from the UI.
+- Added an **Enable** button (icon `Power`) that appears when `service.active`
+  is `false`, calling `useUpdateService()` with the full service payload plus
+  `isActive: true` to preserve all fields.
+- Action buttons are disabled while either mutation is pending.
+- Added `common.enable` to EN/ES/pt-BR dictionaries.
+- Backend unchanged: `operator_update_service` already accepts `p_is_active`.
+
 No UI changes, no provider/route/component/config/test refactors.

@@ -10,4 +10,5 @@ export const qk = {
   bookings: ["bookings"] as const,
   clients: ["clients"] as const,
   dashboardMetrics: ["dashboard_metrics"] as const,
+  tenantSettings: ["tenant-settings"] as const,
 };

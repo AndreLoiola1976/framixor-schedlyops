@@ -61,7 +61,8 @@ export interface BookingFilter {
 }
 
 export interface DataSourceAdapter {
-  getTenant(): Promise<TenantInfo>;
+  /** Returns null when the signed-in user is not linked to any tenant. */
+  getTenant(): Promise<TenantInfo | null>;
   listServices(): Promise<Service[]>;
   createService(input: ServiceCreateInput): Promise<Service>;
   updateService(input: ServiceUpdateInput): Promise<Service>;
