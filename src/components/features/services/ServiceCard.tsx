@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, Users, Pencil, PowerOff } from "lucide-react";
+import { Clock, Users, Pencil, Power, PowerOff } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ import type { Service } from "@/types/service";
 import { formatCurrency, formatDuration } from "@/lib/format";
 import { useT } from "@/i18n/useT";
 import { useProfessionalMap } from "@/hooks/useProfessionals";
-import { useDisableService } from "@/hooks/useSchedulingMutations";
+import { useDisableService, useUpdateService } from "@/hooks/useSchedulingMutations";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 
 interface ServiceCardProps {
@@ -29,6 +29,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
   const proMap = useProfessionalMap();
   const pros = service.professionalIds.map((id) => proMap[id]).filter(Boolean);
   const disable = useDisableService();
+  const update = useUpdateService();
   const [editOpen, setEditOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -91,6 +92,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
               variant="outline"
               className="gap-1.5"
               onClick={() => setEditOpen(true)}
+              disabled={disable.isPending || update.isPending}
             >
               <Pencil className="h-3.5 w-3.5" />
               {t.common.edit}
@@ -101,11 +103,31 @@ export function ServiceCard({ service }: ServiceCardProps) {
                 variant="ghost"
                 className="gap-1.5 text-muted-foreground"
                 onClick={() => setConfirmOpen(true)}
+                disabled={disable.isPending || update.isPending}
               >
                 <PowerOff className="h-3.5 w-3.5" />
                 {t.common.disable}
               </Button>
-            ) : null}
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() =>
+                  update.mutate({
+                    id: service.id,
+                    name: service.name,
+                    durationMinutes: service.durationMinutes,
+                    priceCents: service.priceCents,
+                    isActive: true,
+                  })
+                }
+                disabled={disable.isPending || update.isPending}
+              >
+                <Power className="h-3.5 w-3.5" />
+                {t.common.enable}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

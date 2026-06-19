@@ -41,6 +41,7 @@ export const es: Dictionary = {
     add: "Añadir",
     delete: "Eliminar",
     disable: "Desactivar",
+    enable: "Activar",
     confirm: "Confirmar",
     none: "Ninguno",
     today: "Hoy",

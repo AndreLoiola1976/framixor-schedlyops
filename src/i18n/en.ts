@@ -39,6 +39,7 @@ export const en = {
     add: "Add",
     delete: "Delete",
     disable: "Disable",
+    enable: "Enable",
     confirm: "Confirm",
     none: "None",
     today: "Today",
