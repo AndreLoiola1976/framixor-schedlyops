@@ -1,4 +1,6 @@
 import { getSupabase } from "@/lib/supabase";
+import { getTenantProfile, type TenantProfile } from "@/lib/tenant-profile";
+import { getTenantSettings, type TenantSettings } from "@/lib/tenant-settings";
 import type { Appointment } from "@/types/appointment";
 import type { Professional } from "@/types/professional";
 import type { Service } from "@/types/service";
@@ -57,23 +59,42 @@ function safeInitials(name: unknown): string {
   }
 }
 
-function adaptTenant(row: TenantRow): TenantInfo {
-  const name = typeof row?.name === "string" && row.name.trim() ? row.name : "Workspace";
+function joinAddress(p: TenantProfile | null): string {
+  if (!p) return "";
+  const parts = [p.address_line1, p.address_line2, p.city, p.state, p.postal_code].filter(
+    (s): s is string => typeof s === "string" && s.trim().length > 0,
+  );
+  return parts.join(", ");
+}
+
+function adaptTenant(
+  row: TenantRow,
+  profile: TenantProfile | null,
+  settings: TenantSettings | null,
+): TenantInfo {
+  const baseName = typeof row?.name === "string" && row.name.trim() ? row.name : "Workspace";
+  const display = profile?.display_name?.trim() || baseName;
   return {
     id: typeof row?.tenant_id === "string" ? row.tenant_id : "",
-    name,
+    name: display,
     slug: typeof row?.slug === "string" ? row.slug : "",
     industry: "",
-    email: "",
-    phone: "",
-    address: "",
-    timezone: "UTC",
-    currency: "USD",
-    locale: "en-US",
-    logoInitials: safeInitials(name),
+    email: profile?.public_email ?? "",
+    phone: profile?.public_phone ?? "",
+    address: joinAddress(profile),
+    timezone: settings?.timezone ?? "",
+    currency: "",
+    locale: settings?.default_locale ?? "",
+    logoInitials: safeInitials(display),
     hours: [],
     isLive: true,
     isActive: row?.is_active ?? false,
+    displayName: profile?.display_name ?? undefined,
+    tagline: profile?.tagline ?? undefined,
+    description: profile?.description ?? undefined,
+    websiteUrl: profile?.website_url ?? undefined,
+    logoUrl: profile?.logo_url ?? undefined,
+    countryCode: profile?.country_code ?? settings?.country_code ?? undefined,
   };
 }
 
@@ -283,7 +304,21 @@ export const supabaseAdapter: DataSourceAdapter = {
       return null;
     }
     cachedTenantId = row.tenant_id;
-    return adaptTenant(row);
+    // Compose profile + settings in parallel; degrade gracefully on either
+    // failure so a missing/erroring side-call never breaks the whole tenant.
+    const [profileRes, settingsRes] = await Promise.allSettled([
+      getTenantProfile(),
+      getTenantSettings(),
+    ]);
+    const profile = profileRes.status === "fulfilled" ? profileRes.value : null;
+    const settings = settingsRes.status === "fulfilled" ? settingsRes.value : null;
+    if (profileRes.status === "rejected") {
+      console.warn("[SCHEDLYOPS_TENANT] profile RPC failed", profileRes.reason);
+    }
+    if (settingsRes.status === "rejected") {
+      console.warn("[SCHEDLYOPS_TENANT] settings RPC failed", settingsRes.reason);
+    }
+    return adaptTenant(row, profile, settings);
   },
   async listServices() {
     const tid = await tenantId();
