@@ -44,11 +44,7 @@ export function ServiceFormDialog({ open, onOpenChange, service }: Props) {
   function validatePrice(input: string): number | null {
     const normalized = input.trim().replace(",", ".");
     const parsed = Number(normalized);
-    if (
-      normalized === "" ||
-      !Number.isFinite(parsed) ||
-      parsed < 0
-    ) {
+    if (normalized === "" || !Number.isFinite(parsed) || parsed < 0) {
       return null;
     }
     return Math.round(parsed * 100);
