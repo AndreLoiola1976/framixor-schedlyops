@@ -134,7 +134,10 @@ export function BusinessProfileForm() {
           />
         </Field>
 
-        <ReadOnly label={`${t.settings.business.email} (public)`} value={profile?.public_email || "—"} />
+        <ReadOnly
+          label={`${t.settings.business.email} (public)`}
+          value={profile?.public_email || "—"}
+        />
         <ReadOnly label={t.settings.business.currency} value={tenant.currency || "—"} />
       </div>
 
