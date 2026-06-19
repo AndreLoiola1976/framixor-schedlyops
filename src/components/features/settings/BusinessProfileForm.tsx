@@ -115,7 +115,7 @@ export function BusinessProfileForm() {
         <Field label={`${t.settings.business.phone} (public)`}>
           <Input
             value={v("public_phone")}
-            placeholder="+55 11 90000-0000"
+            placeholder={phonePlaceholder}
             onChange={(e) => set("public_phone", e.target.value)}
           />
         </Field>
