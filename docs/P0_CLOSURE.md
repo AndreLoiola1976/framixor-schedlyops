@@ -100,3 +100,14 @@ Validated in preview against Supabase DEV.
 No Supabase backend, schema, RLS, RPC, migration, auth, storage, seed, or
 edge-function changes were made in this closure pass. No service-role key
 was used. All changes are frontend-only and respect existing RLS.
+
+## Post-closure: tenant profile RPC wired
+
+The "Business profile RPCs" tech-debt item above is resolved. Backend exposes
+`core.operator_(get|update)_tenant_profile`; frontend now writes through it
+via `src/lib/tenant-profile.ts` + `src/hooks/useTenantProfile.ts`, and
+`BusinessProfileForm` is a controlled form again. `BrandingSection` gained a
+`logo_url` text input (no upload). `getTenant()` composes profile + settings
+into `TenantInfo` so `useTenant()` reflects edits without a reload. No
+schema/RLS/migration changes. See `AI_CHANGE_REPORT.md` for details and the
+confirmed RPC parameter list.
