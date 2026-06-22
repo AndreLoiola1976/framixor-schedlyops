@@ -154,9 +154,7 @@ export function deriveClients(
     // next = earliest future booking that isn't cancelled/no_show.
     const futureActive = g.bookings
       .filter(
-        (b) =>
-          new Date(b.startISO).getTime() >= nowMs &&
-          !TERMINAL_NOT_BOOKED.includes(b.status),
+        (b) => new Date(b.startISO).getTime() >= nowMs && !TERMINAL_NOT_BOOKED.includes(b.status),
       )
       .sort((a, b) => new Date(a.startISO).getTime() - new Date(b.startISO).getTime());
     const nextAppointment = futureActive[0] ?? null;

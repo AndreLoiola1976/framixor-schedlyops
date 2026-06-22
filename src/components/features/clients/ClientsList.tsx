@@ -21,7 +21,7 @@ export function ClientsList() {
 
   const filtered = useMemo(() => searchClients(all, q), [all, q]);
   const selected = useMemo(
-    () => (selectedId ? all.find((c) => c.id === selectedId) ?? null : null),
+    () => (selectedId ? (all.find((c) => c.id === selectedId) ?? null) : null),
     [all, selectedId],
   );
 
@@ -37,9 +37,7 @@ export function ClientsList() {
 
   if (all.length === 0) {
     return (
-      <Card className="p-10 text-center text-sm text-muted-foreground">
-        {t.clients.emptyState}
-      </Card>
+      <Card className="p-10 text-center text-sm text-muted-foreground">{t.clients.emptyState}</Card>
     );
   }
 
@@ -93,9 +91,7 @@ export function ClientsList() {
                             {c.initials}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-foreground">
-                              {c.name}
-                            </p>
+                            <p className="truncate text-sm font-medium text-foreground">{c.name}</p>
                           </div>
                         </div>
                         <div className="col-span-2 min-w-0 text-xs text-muted-foreground">
@@ -135,9 +131,7 @@ export function ClientsList() {
                           {c.initials}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {c.name}
-                          </p>
+                          <p className="truncate text-sm font-medium text-foreground">{c.name}</p>
                           <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
                             <Phone className="h-3 w-3" aria-hidden />
                             {c.phone || t.clients.noPhone}

@@ -25,17 +25,12 @@ export function ClientDetailSheet({ client, open, onOpenChange }: ClientDetailSh
 
   if (!client) return null;
 
-  const favPro = client.favoriteProfessionalId
-    ? pros[client.favoriteProfessionalId]?.name
-    : null;
+  const favPro = client.favoriteProfessionalId ? pros[client.favoriteProfessionalId]?.name : null;
   const favSvc = client.favoriteServiceId ? services[client.favoriteServiceId]?.name : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-lg overflow-y-auto"
-      >
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="text-left">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
@@ -63,9 +58,7 @@ export function ClientDetailSheet({ client, open, onOpenChange }: ClientDetailSh
         </div>
 
         <div className="mt-8">
-          <h3 className="mb-3 text-sm font-semibold text-foreground">
-            {t.clients.detail.history}
-          </h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">{t.clients.detail.history}</h3>
           {client.bookings.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t.clients.detail.noHistory}</p>
           ) : (

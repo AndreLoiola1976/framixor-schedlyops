@@ -211,8 +211,6 @@ export const en = {
   clients: {
     title: "Clients",
     subtitle: "Customer history derived from your bookings",
-    pilotBadge: "Pilot Feature — Not Yet Implemented",
-    pilotMessage: "",
     new: "Add client",
     searchPlaceholder: "Search by name or phone…",
     emptyState: "Clients will appear here after bookings are created.",

@@ -214,8 +214,6 @@ export const ptBR: Dictionary = {
   clients: {
     title: "Clientes",
     subtitle: "Histórico de clientes derivado das suas reservas",
-    pilotBadge: "Recurso piloto — ainda não implementado",
-    pilotMessage: "",
     new: "Adicionar cliente",
     searchPlaceholder: "Buscar por nome ou telefone…",
     emptyState: "Os clientes aparecerão aqui quando houver reservas.",

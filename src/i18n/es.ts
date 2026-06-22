@@ -214,8 +214,6 @@ export const es: Dictionary = {
   clients: {
     title: "Clientes",
     subtitle: "Historial de clientes derivado de tus reservas",
-    pilotBadge: "Función piloto — aún no implementada",
-    pilotMessage: "",
     new: "Añadir cliente",
     searchPlaceholder: "Buscar por nombre o teléfono…",
     emptyState: "Los clientes aparecerán aquí cuando se creen reservas.",
