@@ -22,8 +22,8 @@ function appt(over: Partial<Appointment>): Appointment {
 }
 
 const services: Record<string, Service> = {
-  s1: { id: "s1", tenantId: "t", name: "Classic Haircut", category: "", durationMinutes: 30, priceCents: 2500, active: true },
-  s2: { id: "s2", tenantId: "t", name: "Beard Trim", category: "", durationMinutes: 15, priceCents: 1500, active: true },
+  s1: { id: "s1", tenantId: "t", name: "Classic Haircut", description: "", category: "", durationMinutes: 30, priceCents: 2500, active: true, professionalIds: [] },
+  s2: { id: "s2", tenantId: "t", name: "Beard Trim", description: "", category: "", durationMinutes: 15, priceCents: 1500, active: true, professionalIds: [] },
 };
 const pros: Record<string, Professional> = {
   p1: { id: "p1", tenantId: "t", name: "Pat", role: "", email: "", phone: "", initials: "PA", specialties: [], workingDays: "", workingHours: "", active: true },
