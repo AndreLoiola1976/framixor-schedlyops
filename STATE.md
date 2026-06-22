@@ -96,8 +96,47 @@ unchanged" (mirrors the `operator_update_tenant_settings` contract).
   fallback, block exclusion, status counts, next/last selection, and
   search.
 
+## This pass (Dashboard daily command center)
+
+- `/dashboard` (Supabase / `derived` mode only) reorganized into an
+  operator-facing daily view. Mock mode is unchanged.
+- New layout: `KpiGrid` (unchanged) → `TodaySummaryCards` →
+  `TodayScheduleList` + `NextAppointmentCard` (lg 2/1 split) →
+  `ByProfessionalToday`.
+- New shared lib `src/lib/today-key.ts` (`computeTodayKey` +
+  `useTodayKey` mount-gated hook). `UpcomingAppointments` now imports
+  from it instead of duplicating the helper.
+- New pure derivation `src/lib/dashboard-today.ts`:
+  - Includes blocks in `todayAppointments` for calendar context;
+    excludes them from `customerAppointments`, counts, revenue, and
+    next-appointment selection.
+  - `nextAppointment` = earliest future row that is **not** block,
+    cancelled, no_show, or completed.
+  - `counts`: total / completed / cancelled / noShow (kept distinct).
+  - `estimatedRevenueCents`: sum of `priceCents` for **completed** customer
+    appointments only — confirmed bookings never count as revenue.
+  - `byProfessional`: one bucket per **active** professional (empty buckets
+    rendered so each pro shows an empty-state).
+- Quick actions reuse `useCompleteBooking` / `useCancelBooking` /
+  `useMarkNoShow` from `useSchedulingMutations` via a new
+  `LifecycleQuickActions` component. Same `confirmed`-only gating, same
+  `elapsed` guard, same confirmation copy as `AppointmentRow` — no
+  lifecycle logic duplicated, only the small dropdown shell.
+- Reschedule / edit dialogs are intentionally NOT surfaced on the dashboard.
+- Blocks render as a visually distinct row (muted bg, "Blocked" chip, no
+  actions).
+- Dashboard derives from `useAppointments` / `useProfessionals` /
+  `useServices` / `useTenant` only — no `useClients` dependency.
+- i18n keys added in EN / ES / pt-BR under `dashboard.today.{summary,
+  next, schedule, byPro}`.
+- Tests: `tests/dashboard-today.test.ts` covers `computeTodayKey`
+  including America/New_York (UTC date that is the previous day in NY),
+  block exclusion, status counts, next-appointment selection rules,
+  completed-only revenue, and per-professional grouping with empty
+  buckets for active pros.
+
 ## Known gaps (see TODO.md)
 
 Logo upload, professional public/social/contact fields, payments, WhatsApp,
-dashboard KPIs (revenue, deltas), tenant switcher, IANA timezone combobox,
+dashboard KPI deltas (still 0), tenant switcher, IANA timezone combobox,
 Admin-master completeness, mobile-responsive Appointments grid.
