@@ -71,6 +71,21 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 - Payments (Stripe / Mercado Pago).
 - WhatsApp notifications + opt-in.
 - Admin-master tenant CRUD completeness.
+- **Waitlist + walk-in queue (planned, deferred behind backend)** — see
+  `.lovable/plan.md` for the contract-first plan. Requires, in order:
+  (1) `bookings.source` column (`online|operator|walkin`, default `online`);
+  (2) `waitlist_status` enum + `waitlist_entries` table with RLS + grants;
+  (3) RPCs `operator_list_waitlist`, `operator_add_walkin`,
+  `operator_skip_waitlist_entry`, `operator_requeue_waitlist_entry`,
+  `operator_cancel_waitlist_entry`, `operator_reorder_waitlist`,
+  `operator_update_walkin`, `operator_seat_waitlist_entry` (atomic:
+  creates booking + transitions entry in one tx, with typed errors
+  `waitlist_entry_not_waiting`, `waitlist_seat_conflict`, etc.).
+  Backend must adapt table/column names to actual repo schema and reuse
+  the existing booking-creation constraint helpers. **No frontend route,
+  dashboard card, walk-in badge, or mock adapter implementation lands
+  until the RPCs are deployed and exercised against a real tenant.**
+
 
 ## Explicit non-goals for the demo
 
