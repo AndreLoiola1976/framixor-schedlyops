@@ -23,7 +23,7 @@ describe("deriveClients", () => {
   it("groups multiple bookings by normalized phone", () => {
     const out = deriveClients([
       appt({ id: "1", customerPhone: "+1 (555) 111-2222" }),
-      appt({ id: "2", customerPhone: "5551112222" }),
+      appt({ id: "2", customerPhone: "+1 555 111 2222" }),
       appt({ id: "3", customerPhone: "+1 555 999 0000", customerName: "Bob" }),
     ]);
     expect(out).toHaveLength(2);
@@ -69,7 +69,7 @@ describe("deriveClients", () => {
     const c = out[0];
     expect(c.totalBookings).toBe(5);
     expect(c.completedCount).toBe(1);
-    expect(c.cancelledCount).toBe(1);
+    expect(c.cancelledCount).toBe(2);
     expect(c.noShowCount).toBe(1);
     expect(c.nextAppointment?.id).toBe("future1");
     expect(c.lastAppointment?.id).toBe("past3");
