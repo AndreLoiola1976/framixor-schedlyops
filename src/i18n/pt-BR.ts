@@ -84,6 +84,33 @@ export const ptBR: Dictionary = {
       activeProfessionals: "Profissionais ativos",
       activeServices: "Serviços ativos",
     },
+    today: {
+      summary: {
+        total: "Agendamentos hoje",
+        completed: "Concluídos",
+        cancelled: "Cancelados",
+        noShow: "Não compareceu",
+        revenue: "Receita est.",
+        revenueHint: "Somente agendamentos concluídos",
+      },
+      next: {
+        title: "Próximo agendamento",
+        subtitle: "Sua próxima visita confirmada hoje",
+        empty: "Sem próximos agendamentos hoje",
+      },
+      schedule: {
+        title: "Agenda de hoje",
+        subtitle: "Todos os agendamentos e bloqueios de hoje",
+        empty: "Nenhum agendamento programado para hoje.",
+        blocked: "Bloqueado",
+      },
+      byPro: {
+        title: "Por profissional",
+        subtitle: "Carga de hoje por membro da equipe",
+        emptyForPro: "Sem agendamentos hoje.",
+        blocked: "Bloqueado",
+      },
+    },
   },
   appointments: {
     title: "Agendamentos",
