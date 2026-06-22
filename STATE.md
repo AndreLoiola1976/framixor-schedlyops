@@ -135,8 +135,44 @@ unchanged" (mirrors the `operator_update_tenant_settings` contract).
   completed-only revenue, and per-professional grouping with empty
   buckets for active pros.
 
+## This pass (Appointments ops polish)
+
+- `/appointments` toolbar reworked: quick-filter chips
+  (`today | upcoming | completed | cancelled | no_show | all`, default
+  `today`), debounced text search, and the existing professional
+  `Select`. Old status `Select` and disabled date-range button are gone.
+- Active-filter summary bar (chip + search badge + count) sits above the
+  list so an empty `today` reads as "filtered to 0" rather than "missing
+  data".
+- Search matches `customerName`, `customerPhone` (digits substring),
+  `service.name`, `professional.name` — case-insensitive. Blocks are
+  always excluded from search results.
+- New pure filter `src/lib/appointments-filter.ts`. Block semantics:
+  visible under `today` (tz-matched), `upcoming` (future only), and
+  `all`; hidden under status-specific filters and from search.
+- `today` and per-day grouping both go through new `dayKeyInTz` helper in
+  `src/lib/today-key.ts`, so tenant timezone is applied consistently to
+  the "today" key and every appointment's day key.
+- Mobile: new `AppointmentCard` renders below `md`; the existing 12-col
+  `AppointmentRow` renders at `md+`. Chips horizontally scroll on mobile;
+  search input is full-width; no horizontal overflow at 375px.
+- `AppointmentRowActions` is a behavior-preserving extraction of the
+  action menu (reschedule / edit / complete / no-show / cancel) shared
+  by row and card. Lifecycle mutations, gating, confirmation dialogs,
+  and toasts are unchanged.
+- Empty states: `AppointmentsEmpty` shows context-specific copy for
+  today / upcoming / no-search-matches; otherwise falls back to the
+  generic empty.
+- i18n keys added in EN / ES / pt-BR under
+  `appointments.{searchPlaceholder, quickFilters.*, empty.*}`.
+- Tests: `tests/appointments-filter.test.ts` covers today + tz edge
+  (America/New_York where UTC instant falls on the prior local day),
+  upcoming inclusion/exclusion rules with future blocks, status filters
+  excluding blocks, search across all fields, search excluding blocks,
+  and professional + quick combination.
+
 ## Known gaps (see TODO.md)
 
 Logo upload, professional public/social/contact fields, payments, WhatsApp,
 dashboard KPI deltas (still 0), tenant switcher, IANA timezone combobox,
-Admin-master completeness, mobile-responsive Appointments grid.
+Admin-master completeness.

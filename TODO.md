@@ -13,8 +13,11 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 - **IANA timezone combobox** for `TenantSettingsSection` (P0_CLOSURE tech-debt
   item — free-text input today, typos break scheduling and now also break
   "today's appointments" computation).
-- **Mobile-responsive Appointments list**: `AppointmentRow` is a 12-col grid
-  that squeezes below `md`. Move to a stacked card layout on small screens.
+- ~~**Mobile-responsive Appointments list**~~ — shipped: mobile renders
+  `AppointmentCard`, desktop keeps the 12-col `AppointmentRow`.
+- **Appointments date-range picker** — explicit start/end picker beyond the
+  quick filters (today/upcoming/completed/cancelled/no-show/all).
+- **Appointments bulk actions / CSV export** — deferred.
 - **Dashboard KPI deltas + revenue** still missing (all deltas are `0`,
   revenue chart only renders in mock mode).
 - **Public email edit** in `BusinessProfileForm` — flip the field from

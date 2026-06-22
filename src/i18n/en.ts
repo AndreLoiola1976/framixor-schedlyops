@@ -113,6 +113,20 @@ export const en = {
   appointments: {
     title: "Appointments",
     subtitle: "Manage upcoming and past visits",
+    searchPlaceholder: "Search name, phone, service, or pro",
+    quickFilters: {
+      today: "Today",
+      upcoming: "Upcoming",
+      completed: "Completed",
+      cancelled: "Cancelled",
+      no_show: "No-show",
+      all: "All",
+    },
+    empty: {
+      today: "No appointments today.",
+      upcoming: "No upcoming appointments.",
+      noMatches: "No matches for your search.",
+    },
     filters: {
       all: "All statuses",
       professional: "All professionals",

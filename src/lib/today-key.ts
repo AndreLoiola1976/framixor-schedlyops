@@ -30,6 +30,16 @@ export function computeTodayKey(timezone?: string, now: Date = new Date()): stri
 }
 
 /**
+ * Compute the YYYY-MM-DD day key for a given ISO instant in the supplied
+ * IANA timezone. Falls back to the ISO's UTC date slice when no timezone is
+ * provided or `Intl.DateTimeFormat` rejects it. Use for both "today" and
+ * per-appointment day keys so the comparison is consistent.
+ */
+export function dayKeyInTz(iso: string, timezone?: string): string {
+  return computeTodayKey(timezone, new Date(iso));
+}
+
+/**
  * Client-only today key — `null` on the server render and first client
  * render, then resolves after mount. Use this anywhere the rendered output
  * depends on "today" to avoid hydration mismatches.
@@ -41,3 +51,4 @@ export function useTodayKey(timezone?: string): string | null {
   }, [timezone]);
   return key;
 }
+
