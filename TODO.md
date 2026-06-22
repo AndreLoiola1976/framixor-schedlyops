@@ -24,6 +24,20 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 - **Diagnostics panel** under Settings — surface
   `getLastTenantDiagnostic()` + last profile/settings RPC errors for support.
 
+## Clients follow-ups (deferred from this pass)
+
+- Smarter phone normalization (E.164 / country-code aware): today
+  `+1 555 111 2222` and `5551112222` are treated as different clients
+  because the digit strings differ. Plumb tenant `countryCode` through
+  `deriveClients` to collapse leading-1 vs not for US, etc.
+- Persisted customer entity (backend) — owns notes, tags, lifetime value,
+  GDPR delete, and lets clients exist before their first booking.
+- Per-client CSV export.
+- Click "favorite professional" / "favorite service" to filter
+  `/appointments`.
+- Delete unused `src/components/features/clients/ClientsTable.tsx` once
+  confirmed no consumer (currently no importers).
+
 ## Done in the last pass
 
 - Dashboard "Today's appointments" now uses real today (tenant-tz aware).
@@ -31,6 +45,8 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
   shortcut.
 - Settings Working-hours card replaced with a per-professional explainer +
   link to `/professionals`.
+- `/clients` v1: read-only client list + detail sheet derived from
+  bookings, with search, mobile layout, and EN/ES/pt-BR copy.
 
 ## Backend follow-ups (not in scope here)
 
