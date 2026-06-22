@@ -84,6 +84,33 @@ export const es: Dictionary = {
       activeProfessionals: "Profesionales activos",
       activeServices: "Servicios activos",
     },
+    today: {
+      summary: {
+        total: "Citas hoy",
+        completed: "Completadas",
+        cancelled: "Canceladas",
+        noShow: "No asistió",
+        revenue: "Ingresos est.",
+        revenueHint: "Solo citas completadas",
+      },
+      next: {
+        title: "Próxima cita",
+        subtitle: "Tu próxima visita confirmada hoy",
+        empty: "No hay próximas citas hoy",
+      },
+      schedule: {
+        title: "Agenda de hoy",
+        subtitle: "Todas las citas y bloqueos de hoy",
+        empty: "No hay citas programadas para hoy.",
+        blocked: "Bloqueado",
+      },
+      byPro: {
+        title: "Por profesional",
+        subtitle: "Carga de hoy por miembro del equipo",
+        emptyForPro: "Sin citas hoy.",
+        blocked: "Bloqueado",
+      },
+    },
   },
   appointments: {
     title: "Citas",

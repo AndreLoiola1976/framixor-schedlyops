@@ -82,6 +82,33 @@ export const en = {
       activeProfessionals: "Active professionals",
       activeServices: "Active services",
     },
+    today: {
+      summary: {
+        total: "Appointments today",
+        completed: "Completed",
+        cancelled: "Cancelled",
+        noShow: "No-show",
+        revenue: "Est. revenue",
+        revenueHint: "Completed appointments only",
+      },
+      next: {
+        title: "Next appointment",
+        subtitle: "Your next confirmed visit today",
+        empty: "No upcoming appointments today",
+      },
+      schedule: {
+        title: "Today's schedule",
+        subtitle: "All appointments and blocks for today",
+        empty: "No appointments scheduled for today.",
+        blocked: "Blocked",
+      },
+      byPro: {
+        title: "By professional",
+        subtitle: "Today's load per team member",
+        emptyForPro: "No appointments today.",
+        blocked: "Blocked",
+      },
+    },
   },
   appointments: {
     title: "Appointments",

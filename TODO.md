@@ -40,6 +40,13 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 
 ## Done in the last pass
 
+- Dashboard daily command center (Supabase mode): today summary cards,
+  next appointment, today schedule with quick lifecycle actions, and
+  per-professional grouping. Shared `today-key` helper + tested
+  `dashboard-today` derivation.
+
+## Done previously
+
 - Dashboard "Today's appointments" now uses real today (tenant-tz aware).
 - Settings exposes the public booking URL (Copy + Open) and a TopBar
   shortcut.
@@ -47,6 +54,13 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
   link to `/professionals`.
 - `/clients` v1: read-only client list + detail sheet derived from
   bookings, with search, mobile layout, and EN/ES/pt-BR copy.
+
+## Dashboard follow-ups
+
+- Surface reschedule/edit on the dashboard once the dialogs are
+  factored out of `AppointmentRow` for reuse.
+- Real KPI deltas + revenue sparkline (still all `0` / mock-only).
+- Per-professional working-hours overlay (gaps / idle time today).
 
 ## Backend follow-ups (not in scope here)
 
