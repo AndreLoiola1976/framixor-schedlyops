@@ -171,8 +171,20 @@ unchanged" (mirrors the `operator_update_tenant_settings` contract).
   excluding blocks, search across all fields, search excluding blocks,
   and professional + quick combination.
 
+## Planned, deferred behind backend
+
+- **Waitlist + walk-in queue** — contract-first plan accepted; see
+  `.lovable/plan.md` and the entry in TODO.md → "Backend follow-ups".
+  No frontend code is being written for this feature until the
+  `bookings.source` column, `waitlist_entries` table, and the eight
+  `operator_*_waitlist*` RPCs (including atomic `operator_seat_waitlist_entry`)
+  exist and have been tested against a real tenant. The mock adapter
+  will not simulate seating; the route stays unbuilt until the contract
+  lands.
+
 ## Known gaps (see TODO.md)
 
 Logo upload, professional public/social/contact fields, payments, WhatsApp,
 dashboard KPI deltas (still 0), tenant switcher, IANA timezone combobox,
-Admin-master completeness.
+Admin-master completeness, waitlist (planned, backend-dependent).
+
