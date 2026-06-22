@@ -68,9 +68,7 @@ export function TopBar() {
                 </a>
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="text-xs">
-              {t.settings.publicPage.topbarLabel}
-            </TooltipContent>
+            <TooltipContent className="text-xs">{t.settings.publicPage.topbarLabel}</TooltipContent>
           </Tooltip>
         ) : null}
         {canCreate ? (
