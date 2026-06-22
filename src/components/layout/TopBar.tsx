@@ -1,4 +1,5 @@
-import { Bell, LogOut, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, ExternalLink, LogOut, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,6 +12,7 @@ import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
 import { IS_SUPABASE } from "@/lib/env";
 import { signOut, useSession } from "@/hooks/useSession";
 import { useBookingDialog } from "@/hooks/useBookingDialog";
+import { getPublicBookingUrl } from "@/lib/public-booking-url";
 
 export function TopBar() {
   const t = useT();
@@ -18,6 +20,11 @@ export function TopBar() {
   const { session } = useSession();
   const { setOpen } = useBookingDialog();
   const canCreate = IS_SUPABASE && !!session?.user?.id && !!tenant.slug;
+
+  const [bookingUrl, setBookingUrl] = useState<string>("");
+  useEffect(() => {
+    setBookingUrl(getPublicBookingUrl(tenant.slug));
+  }, [tenant.slug]);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
