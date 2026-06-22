@@ -41,8 +41,28 @@ unchanged" (mirrors the `operator_update_tenant_settings` contract).
   read-only in BusinessProfileForm; editable surface (if any) would belong
   in TenantSettingsSection.
 
+## This pass (UX polish #1)
+
+- **Dashboard "Today's appointments"** no longer uses the hardcoded
+  `TODAY = "2026-05-28"`. It now computes `YYYY-MM-DD` on mount using the
+  tenant timezone (falls back to the browser zone). Client-only computation
+  avoids SSR/CSR hydration mismatches.
+- **Settings → "Your booking page"** card added. Renders the public booking
+  URL from `tenant.slug` using `VITE_PUBLIC_BOOKING_BASE_URL` (falls back to
+  `window.location.origin`). Copy-link and Open actions wired with toast
+  feedback. When slug is missing it shows a "publish your profile" hint.
+- **TopBar** gains a small icon-only "View booking page" button (with tooltip)
+  when a slug + URL are available. Hidden when there is nothing to link to,
+  so mobile stays uncluttered.
+- **Settings → Working hours card** replaced. Previously rendered
+  `tenant.hours` which is `[]` in Supabase mode and misleading. Now an
+  explanatory card "Hours are configured per professional" with a button
+  linking to `/professionals` (where `WorkingHoursDialog` actually lives).
+- i18n keys added in EN / ES / pt-BR under `settings.publicPage` and
+  `settings.hours.perProfessional*`.
+
 ## Known gaps (see TODO.md)
 
 Logo upload, professional public/social/contact fields, payments, WhatsApp,
-dashboard KPIs, tenant switcher, IANA timezone combobox, Admin-master
-completeness.
+dashboard KPIs (revenue, deltas), tenant switcher, IANA timezone combobox,
+Admin-master completeness, mobile-responsive Appointments grid.
