@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { SectionCard } from "@/components/common/SectionCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -9,49 +8,22 @@ import { useProfessionalMap } from "@/hooks/useProfessionals";
 import { useTenant } from "@/hooks/useTenant";
 import { useT } from "@/i18n/useT";
 import { dayKey, formatTime } from "@/lib/format";
+import { useTodayKey } from "@/lib/today-key";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { CalendarCheck } from "lucide-react";
 
-/**
- * Compute today's YYYY-MM-DD in the tenant's timezone when available, falling
- * back to the browser's local zone. Runs on the client only to avoid SSR vs.
- * client hydration mismatches when the server clock or zone differs.
- */
-function computeTodayKey(timezone?: string): string {
-  const now = new Date();
-  if (timezone) {
-    try {
-      const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: timezone,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }).formatToParts(now);
-      const y = parts.find((p) => p.type === "year")?.value;
-      const m = parts.find((p) => p.type === "month")?.value;
-      const d = parts.find((p) => p.type === "day")?.value;
-      if (y && m && d) return `${y}-${m}-${d}`;
-    } catch {
-      /* fall through to local */
-    }
-  }
-  return dayKey(now.toISOString());
-}
-
 export function UpcomingAppointments() {
   const t = useT();
   const tenant = useTenant();
-  const [todayKey, setTodayKey] = useState<string | null>(null);
-  useEffect(() => {
-    setTodayKey(computeTodayKey(tenant.timezone));
-  }, [tenant.timezone]);
+  const todayKey = useTodayKey(tenant.timezone);
 
   const all = useAppointments();
   const appts = todayKey ? all.filter((a) => dayKey(a.startISO) === todayKey) : [];
   const clientMap = useClientMap();
   const serviceMap = useServiceMap();
   const proMap = useProfessionalMap();
+
 
   return (
     <SectionCard
