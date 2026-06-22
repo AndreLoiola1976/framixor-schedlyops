@@ -61,6 +61,41 @@ unchanged" (mirrors the `operator_update_tenant_settings` contract).
 - i18n keys added in EN / ES / pt-BR under `settings.publicPage` and
   `settings.hours.perProfessional*`.
 
+## This pass (Clients v1 — read-only)
+
+- `/clients` no longer shows the "pilot — not implemented" stub. It now
+  renders a real read-only customer history derived entirely from existing
+  bookings (`useAppointments()`) — **no backend / schema / RPC change.**
+- Derivation: `src/lib/derive-clients.ts`
+  - Excludes `type === "block"` rows.
+  - Excludes rows missing both `customerPhone` and `customerName`.
+  - Groups primarily by normalized phone (digits only). Falls back to
+    normalized name when phone is missing; a name-only group never merges
+    with a phoned group.
+  - Aggregates per client: `totalBookings`, `completedCount`,
+    `cancelledCount`, `noShowCount` (kept distinct from cancelled),
+    `nextAppointment` (earliest future non-cancelled/non-no_show),
+    `lastAppointment` (most recent past, any status), favorite professional,
+    favorite service, full history newest-first.
+  - next/last comparisons use absolute booking instants (`startISO`), so
+    they are timezone-independent; the tenant timezone only affects
+    display formatting via existing `formatDate`/`formatTime`.
+- UI: `ClientsList` (responsive table on `md+`, stacked cards on mobile)
+  + `ClientDetailSheet` (right-side drawer with stats + history). Search
+  by name or by partial phone digits. Empty state copy when there are no
+  bookings; separate "no matches" copy when search filters everything out.
+- Strictly read-only: no editing, notes, tags, manual merge, customer
+  creation, memberships, payments, or SMS.
+- The legacy `ClientsTable.tsx` is left in place (no other importers) but
+  unused; safe to remove in a follow-up.
+- i18n keys added in EN / ES / pt-BR under `clients.{emptyState,
+  emptySearch, noPhone, columns.{phone,totalBookings,nextVisit,
+  lastService}, mobile.*, detail.*}`. The unused `pilotBadge` /
+  `pilotMessage` keys were removed.
+- Tests: `tests/derive-clients.test.ts` covers phone grouping, name
+  fallback, block exclusion, status counts, next/last selection, and
+  search.
+
 ## Known gaps (see TODO.md)
 
 Logo upload, professional public/social/contact fields, payments, WhatsApp,

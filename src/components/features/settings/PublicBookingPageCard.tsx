@@ -30,10 +30,7 @@ export function PublicBookingPageCard() {
   };
 
   return (
-    <SectionCard
-      title={t.settings.publicPage.title}
-      description={t.settings.publicPage.subtitle}
-    >
+    <SectionCard title={t.settings.publicPage.title} description={t.settings.publicPage.subtitle}>
       {hasSlug ? (
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
@@ -53,12 +50,7 @@ export function PublicBookingPageCard() {
               <Copy className="h-3.5 w-3.5" />
               {t.settings.publicPage.copy}
             </Button>
-            <Button
-              size="sm"
-              asChild={!!url}
-              disabled={!url}
-              className="gap-1.5"
-            >
+            <Button size="sm" asChild={!!url} disabled={!url} className="gap-1.5">
               {url ? (
                 <a href={url} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-3.5 w-3.5" />
