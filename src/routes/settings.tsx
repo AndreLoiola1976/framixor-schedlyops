@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { CalendarClock } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TenantSettingsSection } from "@/components/features/settings/TenantSettingsSection";
 import { BusinessProfileForm } from "@/components/features/settings/BusinessProfileForm";
 import { BrandingSection } from "@/components/features/settings/BrandingSection";
+import { PublicBookingPageCard } from "@/components/features/settings/PublicBookingPageCard";
 import { SectionCard } from "@/components/common/SectionCard";
+import { Button } from "@/components/ui/button";
 import { useT } from "@/i18n/useT";
 import { useTenant } from "@/hooks/useTenant";
 
@@ -30,6 +33,8 @@ function SettingsPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
       <PageHeader title={t.settings.title} subtitle={t.settings.subtitle} />
 
+      <PublicBookingPageCard />
+
       <BusinessProfileForm />
 
       <TenantSettingsSection />
@@ -50,21 +55,21 @@ function SettingsPage() {
         </SectionCard>
       </div>
 
-      <SectionCard title={t.settings.hours.title} description={t.settings.hours.subtitle}>
-        <ul className="divide-y divide-border">
-          {tenant.hours.map((h) => (
-            <li key={h.day} className="flex items-center justify-between py-2.5 text-sm">
-              <span className="font-medium text-foreground">{t.days[h.day]}</span>
-              {h.closed ? (
-                <span className="text-muted-foreground">{t.settings.hours.closed}</span>
-              ) : (
-                <span className="tabular-nums text-foreground">
-                  {h.open} – {h.close}
-                </span>
-              )}
-            </li>
-          ))}
-        </ul>
+      <SectionCard
+        title={t.settings.hours.perProfessionalTitle}
+        description={t.settings.hours.perProfessionalSubtitle}
+      >
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-prose text-sm text-muted-foreground">
+            {t.settings.hours.perProfessionalBody}
+          </p>
+          <Button asChild variant="outline" size="sm" className="gap-1.5 sm:shrink-0">
+            <Link to="/professionals">
+              <CalendarClock className="h-4 w-4" />
+              {t.settings.hours.manageInProfessionals}
+            </Link>
+          </Button>
+        </div>
       </SectionCard>
     </div>
   );

@@ -257,6 +257,21 @@ export const es: Dictionary = {
       title: "Horario de atención",
       subtitle: "Cuándo estás disponible para reservas",
       closed: "Cerrado",
+      perProfessionalTitle: "Horarios de trabajo",
+      perProfessionalSubtitle: "Los horarios se configuran por profesional",
+      perProfessionalBody:
+        "Cada miembro del equipo define su propia disponibilidad. Abre Profesionales para editar los horarios de cualquier integrante.",
+      manageInProfessionals: "Gestionar en Profesionales",
+    },
+    publicPage: {
+      title: "Tu página de reservas",
+      subtitle: "Comparte este enlace con tus clientes para recibir reservas",
+      copy: "Copiar enlace",
+      open: "Abrir",
+      copied: "Enlace copiado",
+      copyFailed: "No se pudo copiar el enlace",
+      noSlug: "Publica tu perfil para activar tu página pública de reservas.",
+      topbarLabel: "Ver página de reservas",
     },
   },
   auth: {

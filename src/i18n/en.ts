@@ -254,6 +254,21 @@ export const en = {
       title: "Business hours",
       subtitle: "When you're open for bookings",
       closed: "Closed",
+      perProfessionalTitle: "Working hours",
+      perProfessionalSubtitle: "Hours are configured per professional",
+      perProfessionalBody:
+        "Each team member sets their own availability. Open Professionals to edit working hours for any team member.",
+      manageInProfessionals: "Manage in Professionals",
+    },
+    publicPage: {
+      title: "Your booking page",
+      subtitle: "Share this link with customers to take bookings",
+      copy: "Copy link",
+      open: "Open",
+      copied: "Link copied",
+      copyFailed: "Couldn't copy link",
+      noSlug: "Publish your profile to enable your public booking page.",
+      topbarLabel: "View booking page",
     },
   },
   auth: {
