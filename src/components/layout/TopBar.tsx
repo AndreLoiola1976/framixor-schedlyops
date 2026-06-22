@@ -54,6 +54,25 @@ export function TopBar() {
         <Button variant="ghost" size="icon" aria-label={t.topbar.notifications}>
           <Bell className="h-4 w-4" />
         </Button>
+        {tenant.slug && bookingUrl ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t.settings.publicPage.topbarLabel}
+                asChild
+              >
+                <a href={bookingUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="text-xs">
+              {t.settings.publicPage.topbarLabel}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
         {canCreate ? (
           <Button size="sm" className="h-9 gap-1.5 rounded-md px-3" onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4" />
