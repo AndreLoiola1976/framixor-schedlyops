@@ -115,6 +115,20 @@ export const ptBR: Dictionary = {
   appointments: {
     title: "Agendamentos",
     subtitle: "Gerencie visitas futuras e passadas",
+    searchPlaceholder: "Buscar nome, telefone, serviço ou profissional",
+    quickFilters: {
+      today: "Hoje",
+      upcoming: "Próximos",
+      completed: "Concluídos",
+      cancelled: "Cancelados",
+      no_show: "Não compareceu",
+      all: "Todos",
+    },
+    empty: {
+      today: "Nenhum agendamento hoje.",
+      upcoming: "Nenhum próximo agendamento.",
+      noMatches: "Nenhum resultado para sua busca.",
+    },
     filters: {
       all: "Todos os status",
       professional: "Todos os profissionais",

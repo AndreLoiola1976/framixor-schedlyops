@@ -115,6 +115,20 @@ export const es: Dictionary = {
   appointments: {
     title: "Citas",
     subtitle: "Gestiona visitas futuras y pasadas",
+    searchPlaceholder: "Buscar nombre, teléfono, servicio o profesional",
+    quickFilters: {
+      today: "Hoy",
+      upcoming: "Próximas",
+      completed: "Completadas",
+      cancelled: "Canceladas",
+      no_show: "No asistió",
+      all: "Todas",
+    },
+    empty: {
+      today: "No hay citas hoy.",
+      upcoming: "No hay próximas citas.",
+      noMatches: "Sin resultados para tu búsqueda.",
+    },
     filters: {
       all: "Todos los estados",
       professional: "Todos los profesionales",
