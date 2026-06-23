@@ -43,10 +43,30 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 
 ## Done in the last pass
 
+- **Public booking wrapper switch**: `createPublicBooking` now calls the
+  `public-create-booking` Edge Function via
+  `supabase.functions.invoke(...)`. Per-attempt UUID v4 idempotency key is
+  minted in `useCreateBooking` (stable across retries, reset on success or
+  input change). Duplicate replay (`{booking_id, duplicate:true}` and
+  `{booking_id}` without `manage_token`) is surfaced as a safe state, not an
+  error. Wrapper error codes mapped: `invalid_input`, `tenant_not_found`,
+  `slot_taken` (→ `SlotTakenError`), `rate_limited`, `outside_hours`,
+  `slot_in_past`, `invalid_service`, `invalid_professional`. Operator
+  booking path untouched.
 - Dashboard daily command center (Supabase mode): today summary cards,
   next appointment, today schedule with quick lifecycle actions, and
   per-professional grouping. Shared `today-key` helper + tested
   `dashboard-today` derivation.
+
+## Follow-ups for the public booking wrapper
+
+- Build the anonymous `/book/:slug` public widget on top of
+  `createPublicBooking` — currently no in-repo caller passes `tenantSlug`,
+  so the wrapper is exercised by tests only inside this app. The live
+  `demo-barber` storefront still lives in a separate Lovable app and must
+  be migrated to the wrapper on its own pass.
+- Surface the `duplicate` state in the future public widget UI
+  (i18n key `bookingDialog.create.duplicate` is already in EN/ES/pt-BR).
 
 ## Done previously
 
