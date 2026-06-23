@@ -232,7 +232,10 @@ async function extractWrapperErrorCode(error: unknown): Promise<string> {
   // Older SDKs expose a plain object; newer ones expose the Response itself.
   const ctx = (error as { context?: unknown })?.context;
   if (ctx && typeof ctx === "object") {
-    const ctxAny = ctx as { json?: () => Promise<unknown>; response?: { json?: () => Promise<unknown> } };
+    const ctxAny = ctx as {
+      json?: () => Promise<unknown>;
+      response?: { json?: () => Promise<unknown> };
+    };
     try {
       if (typeof ctxAny.json === "function") {
         const body = (await ctxAny.json()) as Record<string, unknown> | undefined;

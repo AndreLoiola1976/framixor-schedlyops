@@ -13,11 +13,7 @@ vi.mock("@/lib/supabase", () => ({
   }),
 }));
 
-import {
-  createPublicBooking,
-  SlotTakenError,
-  BookingWrapperError,
-} from "@/lib/booking-public";
+import { createPublicBooking, SlotTakenError, BookingWrapperError } from "@/lib/booking-public";
 
 const baseInput = {
   tenantSlug: "demo-barber",
