@@ -111,13 +111,25 @@ export interface CreateBookingInput {
   startsAt: string;
   customerName: string;
   customerPhone: string;
+  /**
+   * Required for the public Edge Function wrapper. Must stay stable across
+   * retries of the same submission attempt so the backend can dedupe.
+   * Operator path ignores this field.
+   */
+  idempotencyKey?: string;
 }
 
-/** Shape returned by operator_create_booking / public_create_booking after migration 0023. */
+/** Shape returned by operator_create_booking / public-create-booking wrapper. */
 export interface CreateBookingResult {
   bookingId: string;
   /** Single-use customer manage token. Only returned at creation time — never refetched later. */
   manageToken: string | null;
+  /**
+   * True when the wrapper recognised this attempt as an idempotent replay
+   * (explicit `duplicate: true` or `booking_id` returned without a
+   * `manage_token`). Operator path always returns false.
+   */
+  duplicate: boolean;
 }
 
 /** Sentinel error so the dialog can map to the required user-facing copy. */
