@@ -15,9 +15,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const publicPath = isPublicPath(location.pathname);
 
   if (!IS_SUPABASE) return <>{children}</>;
-  // Public routes render immediately, signed-in or not. We never block the
+  // /book/* renders for anyone (signed-in or not). We never block the
   // unauthenticated booking page on a session check.
-  if (publicPath) return <>{children}</>;
+  if (location.pathname.startsWith("/book/")) return <>{children}</>;
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -26,7 +26,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
   if (!session) {
+    if (location.pathname === "/auth") return <>{children}</>;
     return <Navigate to="/auth" replace />;
   }
+  if (location.pathname === "/auth") return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
