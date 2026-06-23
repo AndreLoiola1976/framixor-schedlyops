@@ -188,6 +188,7 @@ export const es: Dictionary = {
       manageLinkOnce: "Este token solo se devuelve al crear. No se puede recuperar después.",
       noToken:
         "El backend no devolvió manage_token — el enlace de autogestión del cliente no está disponible para esta reserva.",
+      duplicate: "Esta reserva ya fue enviada.",
       copy: "Copiar",
       createAnother: "Crear otra",
       done: "Listo",
