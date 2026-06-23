@@ -3,16 +3,10 @@ import { Navigate, useLocation } from "@tanstack/react-router";
 import { IS_SUPABASE } from "@/lib/env";
 import { useSession } from "@/hooks/useSession";
 
-function isPublicPath(pathname: string): boolean {
-  // Explicit allowlist. Never widen to a denylist — every new public route
-  // must be added here on purpose.
-  return pathname === "/auth" || pathname.startsWith("/book/");
-}
-
 export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, session } = useSession();
   const location = useLocation();
-  const publicPath = isPublicPath(location.pathname);
+
 
   if (!IS_SUPABASE) return <>{children}</>;
   // /book/* renders for anyone (signed-in or not). We never block the
