@@ -185,6 +185,7 @@ export const en = {
       manageLinkOnce: "This token is only returned at creation. It can't be retrieved later.",
       noToken:
         "No manage_token returned by the backend — customer self-service link is unavailable for this booking.",
+      duplicate: "This booking was already submitted.",
       copy: "Copy",
       createAnother: "Create another",
       done: "Done",
