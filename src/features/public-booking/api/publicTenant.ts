@@ -32,11 +32,13 @@ type Row = {
 
 function adapt(row: Row | null | undefined, slug: string): PublicTenantProfile | null {
   if (!row) return null;
+  // tenantId is informational; the public RPC may omit it (bookings are
+  // created by tenant_slug, not id). Treat presence of the row itself as
+  // proof that the slug resolved.
   const tenantId =
     (typeof row.tenant_id === "string" && row.tenant_id) ||
     (typeof row.id === "string" && row.id) ||
     "";
-  if (!tenantId) return null;
   const display = row.display_name?.trim() || row.name?.trim() || "Workspace";
   return {
     tenantId,
