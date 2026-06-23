@@ -19,5 +19,5 @@ export function getPublicBookingUrl(slug: string | null | undefined): string {
   const s = (slug ?? "").trim();
   if (!s) return "";
   const base = getPublicBookingBaseUrl();
-  return `${base}/b/${encodeURIComponent(s)}`;
+  return `${base}/book/${encodeURIComponent(s)}`;
 }
