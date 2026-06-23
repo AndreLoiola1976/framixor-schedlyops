@@ -7,6 +7,8 @@ const FRIENDLY: Record<string, string> = {
   no_tenant_context: "Your account isn't linked to a tenant. Ask an admin to grant access.",
   insufficient_privilege: "You need owner or manager access to perform this action.",
   not_found: "That record no longer exists or isn't in your tenant.",
+  tenant_not_found: "We couldn't find that workspace.",
+  rate_limited: "Too many attempts. Please try again in a moment.",
 
   // Validation
   invalid_name: "Name can't be empty.",

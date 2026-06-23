@@ -13,7 +13,8 @@ Manager → Settings → Supabase → demo-barber (public booking).
 | Workspace settings (timezone, default_locale, country_code, self-service policies, fees) | ✅ real, editable | `core.operator_(get\|update)_tenant_settings` |
 | Public tenant profile read (demo-barber) | ✅ real | `core.public_get_tenant_profile(p_slug)` |
 | Services / Professionals / Working hours / Bookings CRUD | ✅ real | `scheduling.*` operator RPCs |
-| Public booking, availability, slot creation | ✅ real | `scheduling.public_available_slots`, `scheduling.public_create_booking` |
+| Public booking availability | ✅ real | `scheduling.public_available_slots` |
+| Public booking creation | ✅ real, hardened | Edge Function `public-create-booking` (Phase 1 wrapper) — validates input, rate-limits, dedupes via `idempotency_key`, returns mapped error codes. `scheduling.public_create_booking` is the inner RPC; frontend no longer calls it directly. |
 
 ## Confirmed backend contract (no migration needed)
 

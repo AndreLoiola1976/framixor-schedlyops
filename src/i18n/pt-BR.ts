@@ -188,6 +188,7 @@ export const ptBR: Dictionary = {
       manageLinkOnce: "Este token só é retornado na criação. Não pode ser recuperado depois.",
       noToken:
         "O backend não retornou manage_token — o link de autogestão do cliente está indisponível.",
+      duplicate: "Este agendamento já foi enviado.",
       copy: "Copiar",
       createAnother: "Criar outra",
       done: "Concluído",

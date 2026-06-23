@@ -1,5 +1,68 @@
 # AI Change Report
 
+## Pass: public booking → `public-create-booking` Edge Function wrapper
+
+### Goal
+Replace the raw `scheduling.public_create_booking` RPC call with the
+`public-create-booking` Edge Function wrapper shipped by Backend Phase 1
+(input validation, rate limit, idempotent dedupe, mapped error codes).
+Operator booking, SMS/email, and backend contracts are untouched.
+
+### Live-flow note (handoff)
+The only in-repo call site is `createPublicBooking` in
+`src/lib/booking-public.ts`. No current operator UI passes `tenantSlug`, so
+the wrapper is preparatory for the in-app anonymous widget. **The deployed
+demo-barber public booking flow lives in a separate Lovable app and must be
+migrated to the same wrapper on its own pass** — this commit does not move
+it.
+
+### Frontend behavior
+- `createPublicBooking` now calls
+  `getSupabase().functions.invoke("public-create-booking", { body })` and
+  reads the standard `{ data, error }` response shape (does not rely on
+  thrown `FunctionsHttpError`).
+- Body: `{ tenant_slug, professional_id, service_id, starts_at,
+  customer_name, customer_phone, idempotency_key }`.
+- `useCreateBooking` mints one UUID v4 `idempotency_key` per submission
+  attempt, reuses it across retries with identical inputs, and resets it on
+  successful submit or when any input field changes.
+- Success returns `{ bookingId, manageToken, duplicate: false }`.
+- Duplicate replay handled safely: `{ booking_id, duplicate: true }` and
+  `{ booking_id }` without `manage_token` both produce
+  `{ duplicate: true, manageToken: null }` — never an error.
+- Errors mapped from the wrapper response body's `code`:
+  `slot_taken` → `SlotTakenError` (preserves existing UX); the other seven
+  (`invalid_input`, `tenant_not_found`, `rate_limited`, `outside_hours`,
+  `slot_in_past`, `invalid_service`, `invalid_professional`) throw a new
+  `BookingWrapperError` with the code attached, and friendly copy lives in
+  `scheduling-errors.ts` for `toUserMessage()`.
+- New i18n key `bookingDialog.create.duplicate` added in EN/ES/pt-BR for the
+  future public widget UI.
+
+### Files changed
+- `src/lib/booking-public.ts` — wrapper switch, `BookingWrapperError`,
+  `CreateBookingResult.duplicate`, `CreateBookingInput.idempotencyKey`.
+- `src/hooks/useCreateBooking.ts` — per-attempt idempotency key manager;
+  exports `_fingerprintForTests` / `_mintForTests` for unit tests.
+- `src/lib/scheduling-errors.ts` — added `tenant_not_found` and
+  `rate_limited` friendly copy.
+- `src/i18n/{en,es,pt-BR}.ts` — `bookingDialog.create.duplicate`.
+- `tests/booking-public-wrapper.test.ts` — 15 tests covering success,
+  explicit duplicate, missing-token replay, each mapped error code,
+  `slot_taken` → `SlotTakenError`, input guards, and idempotency-key
+  reuse/reset behavior.
+- `STATE.md`, `TODO.md`, `AI_CHANGE_REPORT.md`.
+
+### Verification
+- `bunx vitest run` — 8 files, 52 tests, all passing.
+- `bunx eslint` on changed files — clean (pre-existing prettier warnings in
+  unrelated files left as-is, matching prior passes).
+- Typecheck — passes (harness build runs it automatically).
+- Manual sanity: `CreateBookingDialog` does not pass `tenantSlug`, so
+  `useCreateBooking` still routes to `createOperatorBooking` →
+  `scheduling.operator_create_booking` RPC. Wrapper code path is unreachable
+  from operator UI.
+
 ## Pass: real Settings loop — `operator_*_tenant_profile` wired
 
 ### Goal

@@ -111,13 +111,25 @@ export interface CreateBookingInput {
   startsAt: string;
   customerName: string;
   customerPhone: string;
+  /**
+   * Required for the public Edge Function wrapper. Must stay stable across
+   * retries of the same submission attempt so the backend can dedupe.
+   * Operator path ignores this field.
+   */
+  idempotencyKey?: string;
 }
 
-/** Shape returned by operator_create_booking / public_create_booking after migration 0023. */
+/** Shape returned by operator_create_booking / public-create-booking wrapper. */
 export interface CreateBookingResult {
   bookingId: string;
   /** Single-use customer manage token. Only returned at creation time — never refetched later. */
   manageToken: string | null;
+  /**
+   * True when the wrapper recognised this attempt as an idempotent replay
+   * (explicit `duplicate: true` or `booking_id` returned without a
+   * `manage_token`). Operator path always returns false.
+   */
+  duplicate: boolean;
 }
 
 /** Sentinel error so the dialog can map to the required user-facing copy. */
@@ -144,7 +156,7 @@ const TAKEN_PATTERNS = [
  * [{booking_id, manage_token}] (migration 0023). Tolerates legacy scalar uuid.
  */
 function parseBookingResponse(data: unknown): CreateBookingResult {
-  if (typeof data === "string") return { bookingId: data, manageToken: null };
+  if (typeof data === "string") return { bookingId: data, manageToken: null, duplicate: false };
   const row = Array.isArray(data) ? data[0] : data;
   if (row && typeof row === "object") {
     const rec = row as Record<string, unknown>;
@@ -156,9 +168,10 @@ function parseBookingResponse(data: unknown): CreateBookingResult {
       (typeof rec.manage_token === "string" && rec.manage_token) ||
       (typeof rec.token === "string" && rec.token) ||
       null;
-    return { bookingId, manageToken };
+    const duplicate = rec.duplicate === true || (!!bookingId && !manageToken);
+    return { bookingId, manageToken, duplicate };
   }
-  return { bookingId: "", manageToken: null };
+  return { bookingId: "", manageToken: null, duplicate: false };
 }
 
 function throwIfError(error: { message: string } | null) {
@@ -188,20 +201,88 @@ function logRaw(tag: string, params: Record<string, unknown>, data: unknown, err
   });
 }
 
-/** Public (anonymous) booking — used by /b/{token} flow and anonymous booking widget. */
+/**
+ * Wrapper error for `public-create-booking` Edge Function failures.
+ * `code` is the backend's machine-readable code (e.g. `tenant_not_found`,
+ * `rate_limited`, `outside_hours`). `slot_taken` is the one exception —
+ * it throws `SlotTakenError` so existing UI handling keeps working.
+ */
+export class BookingWrapperError extends Error {
+  code: string;
+  constructor(code: string, message?: string) {
+    super(message ?? code);
+    this.name = "BookingWrapperError";
+    this.code = code;
+  }
+}
+
+const MAPPED_WRAPPER_CODES = new Set([
+  "invalid_input",
+  "tenant_not_found",
+  "slot_taken",
+  "rate_limited",
+  "outside_hours",
+  "slot_in_past",
+  "invalid_service",
+  "invalid_professional",
+]);
+
+async function extractWrapperErrorCode(error: unknown): Promise<string> {
+  // supabase-js attaches the raw Response on `error.context` for FunctionsHttpError.
+  // Older SDKs expose a plain object; newer ones expose the Response itself.
+  const ctx = (error as { context?: unknown })?.context;
+  if (ctx && typeof ctx === "object") {
+    const ctxAny = ctx as {
+      json?: () => Promise<unknown>;
+      response?: { json?: () => Promise<unknown> };
+    };
+    try {
+      if (typeof ctxAny.json === "function") {
+        const body = (await ctxAny.json()) as Record<string, unknown> | undefined;
+        if (body && typeof body.code === "string") return body.code;
+      }
+      if (ctxAny.response && typeof ctxAny.response.json === "function") {
+        const body = (await ctxAny.response.json()) as Record<string, unknown> | undefined;
+        if (body && typeof body.code === "string") return body.code;
+      }
+    } catch {
+      // fall through to message parsing
+    }
+  }
+  const msg = (error as { message?: string })?.message ?? "";
+  for (const c of MAPPED_WRAPPER_CODES) {
+    if (msg.includes(c)) return c;
+  }
+  return msg || "unknown_error";
+}
+
+/**
+ * Public (anonymous) booking — calls the `public-create-booking` Edge Function
+ * wrapper instead of the raw RPC. The wrapper validates input, enforces rate
+ * limits, and returns either `{ booking_id, manage_token }` on first success
+ * or `{ booking_id, duplicate: true }` (or `booking_id` without a token) on
+ * an idempotent replay of the same `idempotency_key`.
+ */
 export async function createPublicBooking(input: CreateBookingInput): Promise<CreateBookingResult> {
-  if (!input.tenantSlug) throw new Error("tenantSlug is required for public_create_booking");
-  const params = {
-    p_tenant_slug: input.tenantSlug,
-    p_professional_id: input.professionalId,
-    p_service_id: input.serviceId,
-    p_starts_at: input.startsAt,
-    p_customer_name: input.customerName,
-    p_customer_phone: input.customerPhone,
+  if (!input.tenantSlug) throw new Error("tenantSlug is required for public-create-booking");
+  if (!input.idempotencyKey)
+    throw new Error("idempotencyKey is required for public-create-booking");
+  const body = {
+    tenant_slug: input.tenantSlug,
+    professional_id: input.professionalId,
+    service_id: input.serviceId,
+    starts_at: input.startsAt,
+    customer_name: input.customerName,
+    customer_phone: input.customerPhone,
+    idempotency_key: input.idempotencyKey,
   };
-  const { data, error } = await rpc<unknown>("public_create_booking", params);
-  logRaw("scheduling.public_create_booking", params, data, error);
-  if (error) throwBookingError(error);
+  const { data, error } = await getSupabase().functions.invoke("public-create-booking", { body });
+  logRaw("functions.public-create-booking", body, data, error);
+  if (error) {
+    const code = await extractWrapperErrorCode(error);
+    if (code === "slot_taken") throw new SlotTakenError(code);
+    throw new BookingWrapperError(code);
+  }
   return parseBookingResponse(data);
 }
 
