@@ -4,6 +4,15 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 
 ## Frontend follow-ups
 
+### Public booking page (`/book/:tenantSlug`) — follow-ups to the just-shipped MVP
+- **Operator "Copy public booking link" UI** — surface in Settings or TopBar; include preselection helper for per-service / per-professional links.
+- **Tenant branding on the public page** — logo image, brand color, social meta tags (currently `robots: noindex`, neutral SchedlyOps chrome).
+- **i18n** — public page strings are currently hardcoded English; thread through `useT`.
+- **`AnyProfessional` UX above 50 pros** — today we disable fan-out with a message; consider server-side aggregation if any tenant hits the limit.
+- **SEO / OG** — public page is `noindex` for now; add per-tenant OG once branding is on.
+
+
+
 - **Set `VITE_PUBLIC_BOOKING_BASE_URL`** for the deployed storefront host
   (e.g. `https://demo-barber.lovable.app`). Without it the "Your booking
   page" card and TopBar link fall back to the current operator origin,
