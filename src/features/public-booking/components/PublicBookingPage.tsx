@@ -62,8 +62,11 @@ export function PublicBookingPage({
   const servicesQuery = usePublicServices(tenantSlug, tenantReady);
   const professionalsQuery = usePublicProfessionals(tenantSlug, tenantReady);
 
-  const services = servicesQuery.data ?? [];
-  const professionals = professionalsQuery.data ?? [];
+  const services = useMemo(() => servicesQuery.data ?? [], [servicesQuery.data]);
+  const professionals = useMemo(
+    () => professionalsQuery.data ?? [],
+    [professionalsQuery.data],
+  );
 
   const [serviceId, setServiceId] = useState("");
   const [professionalId, setProfessionalId] = useState<string>(ANY_PRO);
