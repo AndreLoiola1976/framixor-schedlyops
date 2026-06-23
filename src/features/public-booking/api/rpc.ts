@@ -1,13 +1,10 @@
-import { getSupabase } from "@/lib/supabase";
+import { getPublicSupabase } from "@/lib/public-supabase";
+
+export { PublicConfigMissingError, hasPublicSupabaseConfig } from "@/lib/public-supabase";
 
 /**
  * Schema-aware public RPC helper for the unauthenticated booking surface.
- *
- * Modeled after demo-barber's `rpc.ts`. Intentionally separate from the
- * operator-oriented `src/lib/data-source/supabase.ts::call` helper, which is
- * hardcoded to `.schema("scheduling")` and assumes an authenticated tenant
- * context. The public flow spans two schemas (`core`, `scheduling`) and must
- * not depend on session/JWT.
+ * Uses the dedicated anon `getPublicSupabase()` client.
  */
 
 export type PublicSchema = "core" | "scheduling";
@@ -30,7 +27,7 @@ export async function publicRpc<T = unknown>(
   fn: string,
   args: Record<string, unknown>,
 ): Promise<T> {
-  const { data, error } = await getSupabase()
+  const { data, error } = await getPublicSupabase()
     .schema(schema)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .rpc(fn as any, args as any);

@@ -8,9 +8,18 @@ const invokeMock = vi.fn<(name: string, opts: InvokeArgs) => Promise<InvokeResul
 
 vi.mock("@/lib/supabase", () => ({
   getSupabase: () => ({
+    functions: { invoke: vi.fn() },
+    schema: () => ({ rpc: () => Promise.resolve({ data: null, error: null }) }),
+  }),
+}));
+
+vi.mock("@/lib/public-supabase", () => ({
+  getPublicSupabase: () => ({
     functions: { invoke: invokeMock },
     schema: () => ({ rpc: () => Promise.resolve({ data: null, error: null }) }),
   }),
+  hasPublicSupabaseConfig: () => true,
+  PublicConfigMissingError: class extends Error {},
 }));
 
 import { createPublicBooking, SlotTakenError, BookingWrapperError } from "@/lib/booking-public";

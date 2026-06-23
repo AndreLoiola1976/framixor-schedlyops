@@ -3,11 +3,13 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 const rpcMock = vi.fn<(fn: string, args: unknown) => Promise<{ data: unknown; error: unknown }>>();
 const schemaMock = vi.fn((_schema: string) => ({ rpc: rpcMock }));
 
-vi.mock("@/lib/supabase", () => ({
-  getSupabase: () => ({
+vi.mock("@/lib/public-supabase", () => ({
+  getPublicSupabase: () => ({
     schema: schemaMock,
     functions: { invoke: vi.fn() },
   }),
+  hasPublicSupabaseConfig: () => true,
+  PublicConfigMissingError: class extends Error {},
 }));
 
 import { publicRpc, PublicRpcError } from "@/features/public-booking/api/rpc";
