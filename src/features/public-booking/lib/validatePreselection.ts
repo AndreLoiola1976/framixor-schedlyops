@@ -20,11 +20,11 @@ export interface PreselectionResult {
  * available slots.
  */
 export function validatePreselection(input: PreselectionInput): PreselectionResult {
-  const svc = input.serviceId && input.services.some((s) => s.id === input.serviceId)
-    ? input.serviceId
-    : "";
-  const pro = input.professionalId && input.professionals.some((p) => p.id === input.professionalId)
-    ? input.professionalId
-    : "";
+  const svc =
+    input.serviceId && input.services.some((s) => s.id === input.serviceId) ? input.serviceId : "";
+  const pro =
+    input.professionalId && input.professionals.some((p) => p.id === input.professionalId)
+      ? input.professionalId
+      : "";
   return { serviceId: svc, professionalId: pro };
 }

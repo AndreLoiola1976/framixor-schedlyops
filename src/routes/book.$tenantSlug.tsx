@@ -19,10 +19,7 @@ export const Route = createFileRoute("/book/$tenantSlug")({
     return out;
   },
   head: () => ({
-    meta: [
-      { title: "Book an appointment — SchedlyOps" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Book an appointment — SchedlyOps" }, { name: "robots", content: "noindex" }],
   }),
   component: PublicBookingRoute,
 });

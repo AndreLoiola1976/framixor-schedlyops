@@ -33,9 +33,9 @@ describe("publicRpc", () => {
 
   it("throws PublicRpcError on backend error", async () => {
     rpcMock.mockResolvedValueOnce({ data: null, error: { message: "boom", code: "42P01" } });
-    await expect(publicRpc("core", "public_get_tenant_profile", { p_slug: "x" })).rejects.toBeInstanceOf(
-      PublicRpcError,
-    );
+    await expect(
+      publicRpc("core", "public_get_tenant_profile", { p_slug: "x" }),
+    ).rejects.toBeInstanceOf(PublicRpcError);
   });
 });
 
@@ -83,23 +83,21 @@ describe("getPublicTenantProfile", () => {
 describe("listPublicServices", () => {
   it("adapts rows and drops entries without id", async () => {
     rpcMock.mockResolvedValueOnce({
-      data: [
-        { id: "s-1", name: "Cut", duration_min: 30, price_cents: 3000 },
-        { name: "Bad row" },
-      ],
+      data: [{ id: "s-1", name: "Cut", duration_min: 30, price_cents: 3000 }, { name: "Bad row" }],
       error: null,
     });
     const out = await listPublicServices("demo");
-    expect(out).toEqual([
-      { id: "s-1", name: "Cut", durationMinutes: 30, priceCents: 3000 },
-    ]);
+    expect(out).toEqual([{ id: "s-1", name: "Cut", durationMinutes: 30, priceCents: 3000 }]);
   });
 });
 
 describe("listPublicProfessionals", () => {
   it("adapts rows", async () => {
     rpcMock.mockResolvedValueOnce({
-      data: [{ id: "p-1", name: "Alex" }, { id: "p-2", display_name: "Sam" }],
+      data: [
+        { id: "p-1", name: "Alex" },
+        { id: "p-2", display_name: "Sam" },
+      ],
       error: null,
     });
     expect(await listPublicProfessionals("demo")).toEqual([

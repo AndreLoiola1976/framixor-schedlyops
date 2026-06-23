@@ -19,14 +19,8 @@ import { SlotTakenError } from "@/lib/booking-public";
 import { toUserMessage } from "@/lib/scheduling-errors";
 import { useCreateBooking } from "@/hooks/useCreateBooking";
 import { usePublicTenant } from "../hooks/usePublicTenant";
-import {
-  usePublicProfessionals,
-  usePublicServices,
-} from "../hooks/usePublicCatalog";
-import {
-  resolveProfessionalForSlot,
-  usePublicSlots,
-} from "../hooks/usePublicSlots";
+import { usePublicProfessionals, usePublicServices } from "../hooks/usePublicCatalog";
+import { resolveProfessionalForSlot, usePublicSlots } from "../hooks/usePublicSlots";
 import { validatePreselection } from "../lib/validatePreselection";
 
 const ANY_PRO = "any";
@@ -230,9 +224,7 @@ export function PublicBookingPage({
           <h1 className="font-display text-3xl font-semibold text-foreground">
             {tenant.displayName}
           </h1>
-          {tenant.tagline && (
-            <p className="mt-1 text-sm text-muted-foreground">{tenant.tagline}</p>
-          )}
+          {tenant.tagline && <p className="mt-1 text-sm text-muted-foreground">{tenant.tagline}</p>}
           <p className="mt-3 text-sm text-muted-foreground">Book your appointment online.</p>
         </header>
 
@@ -252,9 +244,7 @@ export function PublicBookingPage({
             </div>
             {manageUrl ? (
               <div className="mt-3 rounded border border-border bg-muted/30 p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                  Manage link
-                </p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Manage link</p>
                 <div className="mt-1 flex items-start gap-2">
                   <code className="flex-1 break-all rounded bg-background/60 p-1.5 text-xs">
                     {manageUrl}
@@ -309,9 +299,7 @@ export function PublicBookingPage({
                 <Select value={professionalId} onValueChange={setProfessionalId}>
                   <SelectTrigger id="pb-pro">
                     <SelectValue
-                      placeholder={
-                        professionalsQuery.isLoading ? "Loading…" : "Any professional"
-                      }
+                      placeholder={professionalsQuery.isLoading ? "Loading…" : "Any professional"}
                     />
                   </SelectTrigger>
                   <SelectContent>

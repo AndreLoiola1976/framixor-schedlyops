@@ -32,7 +32,12 @@ const EMPTY: SlotMap = {
   disabledReason: null,
 };
 
-function singleKey(args: { tenantSlug: string; professionalId: string; serviceId: string; date: string }) {
+function singleKey(args: {
+  tenantSlug: string;
+  professionalId: string;
+  serviceId: string;
+  date: string;
+}) {
   return [
     "public-booking",
     "slots",
@@ -71,8 +76,7 @@ export function usePublicSlots(args: PublicSlotsArgs): SlotMap {
     () => (isAny ? args.professionals.slice(0, FANOUT_LIMIT) : []),
     [isAny, args.professionals],
   );
-  const fanoutDisabled =
-    isAny && args.professionals.length > FANOUT_LIMIT;
+  const fanoutDisabled = isAny && args.professionals.length > FANOUT_LIMIT;
 
   const fanout = useQueries({
     queries: fanoutPros.map((p) => ({
@@ -133,7 +137,17 @@ export function usePublicSlots(args: PublicSlotsArgs): SlotMap {
     });
     const slots = [...bySlot.keys()].sort();
     return { slots, bySlot, isLoading, isError, disabledReason: null };
-  }, [ready, isAny, single.data, single.isFetching, single.isError, fanout, fanoutPros, fanoutDisabled, args.professionalId]);
+  }, [
+    ready,
+    isAny,
+    single.data,
+    single.isFetching,
+    single.isError,
+    fanout,
+    fanoutPros,
+    fanoutDisabled,
+    args.professionalId,
+  ]);
 }
 
 /**

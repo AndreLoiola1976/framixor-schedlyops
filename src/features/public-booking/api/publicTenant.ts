@@ -32,10 +32,12 @@ type Row = {
 
 function adapt(row: Row | null | undefined, slug: string): PublicTenantProfile | null {
   if (!row) return null;
-  const tenantId = (typeof row.tenant_id === "string" && row.tenant_id) ||
-    (typeof row.id === "string" && row.id) || "";
+  const tenantId =
+    (typeof row.tenant_id === "string" && row.tenant_id) ||
+    (typeof row.id === "string" && row.id) ||
+    "";
   if (!tenantId) return null;
-  const display = (row.display_name?.trim() || row.name?.trim() || "Workspace");
+  const display = row.display_name?.trim() || row.name?.trim() || "Workspace";
   return {
     tenantId,
     slug: row.slug ?? slug,

@@ -13,8 +13,10 @@ type Row = {
 };
 
 function adapt(row: Row): PublicProfessional | null {
-  const id = (typeof row.id === "string" && row.id) ||
-    (typeof row.professional_id === "string" && row.professional_id) || "";
+  const id =
+    (typeof row.id === "string" && row.id) ||
+    (typeof row.professional_id === "string" && row.professional_id) ||
+    "";
   if (!id) return null;
   const name = row.display_name?.trim() || row.name?.trim() || "Professional";
   return { id, name };

@@ -17,8 +17,10 @@ type Row = {
 };
 
 function adapt(row: Row): PublicService | null {
-  const id = (typeof row.id === "string" && row.id) ||
-    (typeof row.service_id === "string" && row.service_id) || "";
+  const id =
+    (typeof row.id === "string" && row.id) ||
+    (typeof row.service_id === "string" && row.service_id) ||
+    "";
   if (!id) return null;
   return {
     id,
