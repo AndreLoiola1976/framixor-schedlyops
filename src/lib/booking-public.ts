@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase";
+import { getPublicSupabase } from "@/lib/public-supabase";
 
 /**
  * Thin wrappers over the documented public scheduling RPCs.
@@ -22,6 +23,23 @@ import { getSupabase } from "@/lib/supabase";
 function rpc<T = unknown>(fn: string, args: Record<string, unknown>) {
   return (
     getSupabase()
+      .schema("scheduling")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .rpc(fn as any, args as any) as unknown as Promise<{
+      data: T | null;
+      error: { message: string; code?: string } | null;
+    }>
+  );
+}
+
+/**
+ * Anon-client variant for `public_*` RPCs. Used by the unauthenticated
+ * booking page so the call works regardless of the operator IS_SUPABASE
+ * data-source toggle.
+ */
+function publicRpc<T = unknown>(fn: string, args: Record<string, unknown>) {
+  return (
+    getPublicSupabase()
       .schema("scheduling")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .rpc(fn as any, args as any) as unknown as Promise<{
@@ -74,7 +92,7 @@ export async function listAvailableSlots(input: AvailableSlotsInput): Promise<st
     p_service_id: input.serviceId,
     p_date: input.date,
   };
-  const { data, error } = await rpc<unknown>("public_available_slots", params);
+  const { data, error } = await publicRpc<unknown>("public_available_slots", params);
   const rows = Array.isArray(data) ? data : data == null ? [] : [data];
   const mapped = rows.map(extractSlotStart).filter((v): v is string => typeof v === "string");
   const firstRow = rows[0] ?? null;
@@ -276,7 +294,9 @@ export async function createPublicBooking(input: CreateBookingInput): Promise<Cr
     customer_phone: input.customerPhone,
     idempotency_key: input.idempotencyKey,
   };
-  const { data, error } = await getSupabase().functions.invoke("public-create-booking", { body });
+  const { data, error } = await getPublicSupabase().functions.invoke("public-create-booking", {
+    body,
+  });
   logRaw("functions.public-create-booking", body, data, error);
   if (error) {
     const code = await extractWrapperErrorCode(error);
