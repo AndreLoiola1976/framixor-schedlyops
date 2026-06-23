@@ -15,6 +15,7 @@ Manager → Settings → Supabase → demo-barber (public booking).
 | Services / Professionals / Working hours / Bookings CRUD | ✅ real | `scheduling.*` operator RPCs |
 | Public booking availability | ✅ real | `scheduling.public_available_slots` |
 | Public booking creation | ✅ real, hardened | Edge Function `public-create-booking` (Phase 1 wrapper) — validates input, rate-limits, dedupes via `idempotency_key`, returns mapped error codes. `scheduling.public_create_booking` is the inner RPC; frontend no longer calls it directly. |
+| Public booking page (`/book/:tenantSlug`) | ✅ real, owned by SchedlyOps | New isolated module `src/features/public-booking/` calling `core.public_get_tenant_profile`, `scheduling.public_list_services`, `scheduling.public_list_professionals`, `scheduling.public_available_slots`, and the `public-create-booking` Edge Function. AuthGate allowlists `/book/*`; `AppShell` skips the operator sidebar for public routes. Optional preselection via `?service=<uuid>&professional=<uuid>` (invalid ids silently dropped, unknown ids dropped post-load, no compatibility check). "Any professional" supported via client-side fan-out (≤50 pros). |
 
 ## Confirmed backend contract (no migration needed)
 

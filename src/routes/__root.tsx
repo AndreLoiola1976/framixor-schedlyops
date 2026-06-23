@@ -161,9 +161,10 @@ function AppShell() {
   const tenant = useTenant();
   const canCreate = IS_SUPABASE && !!session?.user?.id && !!tenant.slug;
 
-  if (pathname === "/auth") {
+  if (pathname === "/auth" || pathname.startsWith("/book/")) {
     return <Outlet />;
   }
+
   return (
     <BookingDialogContext.Provider value={{ open: bookingOpen, setOpen: setBookingOpen }}>
       <SidebarProvider>

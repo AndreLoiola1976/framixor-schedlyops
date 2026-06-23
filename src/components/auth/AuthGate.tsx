@@ -8,6 +8,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   if (!IS_SUPABASE) return <>{children}</>;
+  // /book/* renders for anyone (signed-in or not). We never block the
+  // unauthenticated booking page on a session check.
+  if (location.pathname.startsWith("/book/")) return <>{children}</>;
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
