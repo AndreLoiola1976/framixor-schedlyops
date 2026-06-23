@@ -1,5 +1,70 @@
 # AI Change Report
 
+## Pass: public unauthenticated booking page (`/book/:tenantSlug`)
+
+### Goal
+Host the public, unauthenticated booking page inside SchedlyOps so a salon
+can share `/book/<tenant-slug>` directly with customers. Optional
+preselection via `?service=` and `?professional=` UUID query params. No
+backend changes; no operator-adapter contamination.
+
+### Backend surface consumed (existing, unchanged)
+- `core.public_get_tenant_profile(p_slug)` — array, take `[0] ?? null`.
+- `scheduling.public_list_services(p_tenant_slug)`.
+- `scheduling.public_list_professionals(p_tenant_slug)`.
+- `scheduling.public_available_slots(p_tenant_slug, p_professional_id, p_service_id, p_date)` — already wrapped by `listAvailableSlots` in `src/lib/booking-public.ts`.
+- `public-create-booking` Edge Function — already wrapped by `createPublicBooking` and used by `useCreateBooking` when `tenantSlug` is provided.
+
+### New isolated public module — `src/features/public-booking/`
+- `api/rpc.ts` — `publicRpc(schema, fn, args)` schema-aware helper (`"core" | "scheduling"`). Throws `PublicRpcError`. Independent from `src/lib/data-source/supabase.ts::call` (which is operator-only and hardcoded to `.schema("scheduling")`).
+- `api/publicTenant.ts` — `getPublicTenantProfile(slug)` → `PublicTenantProfile | null`. Array-returning RPC: takes `rows[0] ?? null`.
+- `api/publicServices.ts` — `listPublicServices(slug)` → `PublicService[]`.
+- `api/publicProfessionals.ts` — `listPublicProfessionals(slug)` → `PublicProfessional[]`.
+- `hooks/usePublicTenant.ts`, `hooks/usePublicCatalog.ts` (services + professionals), `hooks/usePublicSlots.ts` — React Query wrappers, no session gate.
+- `hooks/usePublicSlots.ts` — single-professional path AND fan-out across professionals (≤50) when professional is `"any"`. Unions slot times, tracks `bySlot` map so the submit step can resolve the chosen professional. `resolveProfessionalForSlot(bySlot, slot, preferredId)` prefers the URL-preselected professional when ambiguous, otherwise first candidate.
+- `lib/validatePreselection.ts` — drops URL ids missing from the loaded lists. Does NOT check service↔professional compatibility (not exposed by the public RPCs; incompatible pairs naturally yield no slots).
+- `components/PublicBookingPage.tsx` — single-page form: service + professional pickers (with "Any professional"), date + slot, name + phone (both required, matching existing operator contract). Renders "Booking page not found" inline when the tenant profile lookup returns null/errors — no route `notFoundComponent` indirection.
+
+### Route — `src/routes/book.$tenantSlug.tsx`
+- Top-level, NOT under `_authenticated/`.
+- `validateSearch` accepts only well-formed UUIDs for `service` / `professional`; anything else is silently dropped.
+- Tenant slug path param validated with `^[a-z0-9-]{1,64}$`; bad shape falls through to the in-page not-found state.
+- `head()` sets a neutral SchedlyOps title and `robots: noindex`.
+
+### AuthGate & root layout
+- `src/components/auth/AuthGate.tsx`: explicit `/book/` pass-through. Logged-in users can also open `/book/...` (useful for previewing a shared link). Allowlist, never denylist.
+- `src/routes/__root.tsx` (`AppShell`): `/book/*` skips `SidebarProvider`/`TopBar` and renders the `<Outlet />` directly so the public page shows neutral chrome.
+
+### Reuse / no duplication
+- `useCreateBooking` — reused as-is. Already routes through `createPublicBooking` Edge Function when `tenantSlug` is set, manages idempotency keys, and maps `SlotTakenError` / `BookingWrapperError`.
+- `toUserMessage` reused for friendly error toasts.
+- Operator data layer (`src/lib/data-source/**`, `useTenant`, `useServices`, `useProfessionals`) is untouched.
+
+### Tests — `tests/public-booking.test.ts`
+- `publicRpc` happy path, schema selection, `PublicRpcError` on backend error.
+- `getPublicTenantProfile`: array `[0]` extraction; `[]` and `null` → `null`.
+- `listPublicServices` / `listPublicProfessionals` adapter behavior.
+- `validatePreselection`: keeps valid pair, drops unknown service, drops unknown professional, handles missing.
+- `resolveProfessionalForSlot`: empty map → null, prefers preferredId, falls back to first candidate.
+
+Total project tests: **66 passing**.
+
+### Verification
+- typecheck: clean.
+- lint: no errors/warnings on new files (pre-existing prettier issues in unrelated files remain).
+- vitest: 66/66.
+- build: clean.
+
+### Out of scope
+- Operator-side "copy public link" button.
+- SMS / email / manage-booking changes.
+- Public tenant logo upload / branding editor.
+- Backend contracts (none touched).
+
+---
+
+
+
 ## Pass: public booking → `public-create-booking` Edge Function wrapper
 
 ### Goal
