@@ -298,10 +298,15 @@ export function PublicBookingPage({
           />
         ) : (
           <form onSubmit={handleSubmit} className="flex h-full flex-col">
-            {/* Body: single column < lg, two columns lg+ */}
-            <div className="flex-1 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-0">
+            {/*
+              Body scrolling:
+              - <lg: single outer scroll (no nested scrollers, no scrollbar
+                inside scrollbar). Both column groups flow naturally.
+              - lg+: two side-by-side columns, each owns its own scroll.
+            */}
+            <div className="flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-0 lg:overflow-hidden">
               {/* Left column (lg+) / top stack on mobile/tablet */}
-              <div className="flex flex-col gap-0 overflow-y-auto px-5 pb-4 pt-5 sm:px-7 lg:h-full lg:border-r lg:border-border lg:px-8 lg:pb-6">
+              <div className="flex flex-col gap-0 px-5 pt-6 sm:px-7 lg:h-full lg:overflow-y-auto lg:border-r lg:border-border lg:px-8 lg:pb-6 lg:pt-5">
                 <IdentityHeader tenant={tenant} />
                 <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
                   Book your chair
@@ -316,7 +321,7 @@ export function PublicBookingPage({
               </div>
 
               {/* Right column (lg+) / continuation on mobile/tablet */}
-              <div className="flex flex-col overflow-y-auto px-5 pb-4 sm:px-7 lg:h-full lg:px-8 lg:pt-5">
+              <div className="flex flex-col px-5 pb-5 sm:px-7 lg:h-full lg:overflow-y-auto lg:px-8 lg:pb-6 lg:pt-5">
                 {proPills}
                 <DayStrip
                   cells={dayStrip}
@@ -413,10 +418,11 @@ function DeviceFrame({
       */}
       <div
         className={cn(
-          // Mobile: full bleed, no bezel
-          "min-h-screen w-full bg-card",
+          // Mobile: full bleed, no bezel — locked to viewport height so the
+          // sticky CTA always sits at the bottom of the screen.
+          "h-[100dvh] w-full bg-card",
           // sm/md: portrait tablet bezel
-          "sm:min-h-0 sm:w-[min(640px,calc(100vw-3rem))] sm:rounded-[2.5rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
+          "sm:h-auto sm:w-[min(640px,calc(100vw-3rem))] sm:rounded-[2.5rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
           // lg+: landscape tablet, wider than tall
           "lg:w-[min(1120px,calc(100vw-4rem))] lg:rounded-[2rem] lg:p-4",
         )}
@@ -523,9 +529,10 @@ function ServiceList({
   return (
     <div
       className={cn(
-        "mt-4 flex flex-col gap-2 overflow-y-auto pr-1",
-        // Cap height on mobile/tablet, let lg column scroll own it
-        "max-h-[280px] lg:max-h-none lg:flex-1",
+        "mt-4 flex flex-col gap-2",
+        // Below lg the outer panel owns the scroll — no inner cap to avoid
+        // nested scrollbars or clipping the first row. lg+ column scrolls.
+        "lg:flex-1 lg:overflow-y-auto lg:pr-1",
       )}
       role="listbox"
       aria-label="Services"
