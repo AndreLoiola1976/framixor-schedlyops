@@ -2,6 +2,34 @@
 
 Last updated by this change pass.
 
+## Current snapshot (Founder Beta prep)
+
+- **Public booking page** uses the **Sand & Brass** premium visual direction
+  (hard-applied on `/book/:tenantSlug` via `theme-sand-brass` tokens).
+- **Responsive device frame** for the public page is in progress / recently
+  refined:
+  - Wide desktop (lg/xl): landscape tablet-style frame, 2-column layout.
+  - sm/md (tablet): portrait tablet frame.
+  - Mobile: edge-to-edge, no bezel, single outer scroll, sticky CTA.
+- **Booking Page Launch Kit MVP** exists in Settings
+  (`PublicBookingPageCard`): stacked sections for share snippets
+  (Instagram bio / WhatsApp / Google Business) + readiness checklist
+  (business name, 1+ active service, 1+ active professional, link active).
+  **QR code is deferred.** No new dependencies were added.
+- **Public booking base URL policy:** `VITE_PUBLIC_BOOKING_BASE_URL` is
+  **required** before Founder Beta or any customer sharing. Preview /
+  editor / Lovable GUID hosts (e.g. `*.lovableproject.com`) must **not**
+  be shared with real customers — verified that the GUID host prompts a
+  Lovable login wall in a logged-out session.
+- **Honest readiness review** captured in
+  [`docs/readiness-review.md`](./docs/readiness-review.md). It identifies
+  the next likely product focus as **operational trust**: customer
+  confirmation email, customer-facing manage/cancel link via existing
+  `manage_token`, 24h reminders, working-hours onboarding nudge,
+  dashboard KPI honesty, and the AuthGate SSR/CSR hydration mismatch.
+  **No recommendation from that review is approved for implementation yet** —
+  it is a decision document, not a backlog.
+
 ## Demo loop status
 
 Manager → Settings → Supabase → demo-barber (public booking).
