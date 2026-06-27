@@ -156,3 +156,23 @@ describe("resolveProfessionalForSlot", () => {
     expect(resolveProfessionalForSlot(m, "s")).toBe("a");
   });
 });
+
+describe("buildDayStrip", () => {
+  it("produces N sequential days with the expected shape", () => {
+    const from = new Date("2025-06-24T12:00:00Z"); // Tue
+    const out = buildDayStrip(from, 7, "UTC");
+    expect(out).toHaveLength(7);
+    expect(out[0]).toEqual({ key: "2025-06-24", weekday: "TUE", day: "24" });
+    expect(out[6]?.key).toBe("2025-06-30");
+    expect(out.every((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.key))).toBe(true);
+  });
+
+  it("uses the provided timezone for day labels", () => {
+    // 03:00 UTC on the 25th is still the 24th in Los Angeles.
+    const from = new Date("2025-06-25T03:00:00Z");
+    const utc = buildDayStrip(from, 1, "UTC")[0]!;
+    const la = buildDayStrip(from, 1, "America/Los_Angeles")[0]!;
+    expect(utc.key).toBe("2025-06-25");
+    expect(la.key).toBe("2025-06-24");
+  });
+});
