@@ -17,6 +17,19 @@ Manager → Settings → Supabase → demo-barber (public booking).
 | Public booking creation | ✅ real, hardened | Edge Function `public-create-booking` (Phase 1 wrapper) — validates input, rate-limits, dedupes via `idempotency_key`, returns mapped error codes. `scheduling.public_create_booking` is the inner RPC; frontend no longer calls it directly. |
 | Public booking page (`/book/:tenantSlug`) | ✅ real, owned by SchedlyOps | New isolated module `src/features/public-booking/` calling `core.public_get_tenant_profile`, `scheduling.public_list_services`, `scheduling.public_list_professionals`, `scheduling.public_available_slots`, and the `public-create-booking` Edge Function. AuthGate allowlists `/book/*`; `AppShell` skips the operator sidebar for public routes. Optional preselection via `?service=<uuid>&professional=<uuid>` (invalid ids silently dropped, unknown ids dropped post-load, no compatibility check). "Any professional" supported via client-side fan-out (≤50 pros). |
 
+## Public booking base URL — config policy
+
+`VITE_PUBLIC_BOOKING_BASE_URL` is **currently unset** in preview. The app
+falls back to `window.location.origin`, which in Lovable preview/editor
+environments produces Lovable-gated URLs (verified: the `lovableproject.com`
+GUID host prompted a Lovable login in a logged-out Firefox session). Treat
+booking links copied from preview/editor as internal-only — do not share
+with real customers. Before Founder Beta, set the var in Workspace Settings
+→ Build Secrets to a verified public production host. See
+`docs/P0_CLOSURE.md` → "Public booking base URL policy" for full criteria.
+
+
+
 ## Confirmed backend contract (no migration needed)
 
 `core.operator_update_tenant_profile` accepts these named parameters (verified
