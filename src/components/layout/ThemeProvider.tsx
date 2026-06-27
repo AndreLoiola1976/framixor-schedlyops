@@ -24,6 +24,7 @@ const THEME_CLASSES: Record<ThemeMode, string | null> = {
   light: null,
   dark: "dark",
   "demo-barber": "theme-demo-barber",
+  "sand-brass": "theme-sand-brass",
 };
 
 function brandingToVars(b: Branding): Record<(typeof MANAGED_VARS)[number], string> {
