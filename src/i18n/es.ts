@@ -334,7 +334,37 @@ export const es: Dictionary = {
       copyFailed: "No se pudo copiar el enlace",
       noSlug: "Publica tu perfil para activar tu página pública de reservas.",
       topbarLabel: "Ver página de reservas",
+      launchKit: {
+        shareTitle: "Comparte esta página",
+        checklistTitle: "Listo para compartir",
+        progress: "{done} de {total} listos",
+        comingSoon: "Próximamente",
+        copied: "Copiado al portapapeles",
+        copyFailed: "No se pudo copiar el texto",
+        share: {
+          instagram: {
+            label: "Bio de Instagram",
+            template: "✂️ Reserva online en {name} → {url}",
+          },
+          whatsapp: {
+            label: "Mensaje de WhatsApp",
+            template: "¡Hola! Puedes reservar tu cita en {name} aquí: {url}",
+          },
+          googleBusiness: {
+            label: "Publicación de Google Business",
+            template: "Reserva tu próxima visita a {name} online — {url}",
+          },
+        },
+        checklist: {
+          businessName: "Nombre del negocio configurado",
+          activeService: "Al menos un servicio activo",
+          activeProfessional: "Al menos un profesional activo",
+          bookingLink: "Enlace de reservas activo",
+          workingHours: "Horario de atención configurado",
+        },
+      },
     },
+
   },
   auth: {
     title: "SchedlyOps",
