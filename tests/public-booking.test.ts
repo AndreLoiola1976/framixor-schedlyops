@@ -18,6 +18,7 @@ import { listPublicServices } from "@/features/public-booking/api/publicServices
 import { listPublicProfessionals } from "@/features/public-booking/api/publicProfessionals";
 import { validatePreselection } from "@/features/public-booking/lib/validatePreselection";
 import { resolveProfessionalForSlot } from "@/features/public-booking/hooks/usePublicSlots";
+import { buildDayStrip } from "@/features/public-booking/lib/dayStrip";
 
 beforeEach(() => {
   rpcMock.mockReset();
