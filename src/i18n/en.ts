@@ -331,7 +331,37 @@ export const en = {
       copyFailed: "Couldn't copy link",
       noSlug: "Publish your profile to enable your public booking page.",
       topbarLabel: "View booking page",
+      launchKit: {
+        shareTitle: "Share this page",
+        checklistTitle: "Ready to share",
+        progress: "{done} of {total} ready",
+        comingSoon: "Coming soon",
+        copied: "Copied to clipboard",
+        copyFailed: "Couldn't copy text",
+        share: {
+          instagram: {
+            label: "Instagram bio",
+            template: "✂️ Book online at {name} → {url}",
+          },
+          whatsapp: {
+            label: "WhatsApp message",
+            template: "Hi! You can book your appointment at {name} here: {url}",
+          },
+          googleBusiness: {
+            label: "Google Business update",
+            template: "Book your next visit to {name} online — {url}",
+          },
+        },
+        checklist: {
+          businessName: "Business name set",
+          activeService: "At least one active service",
+          activeProfessional: "At least one active professional",
+          bookingLink: "Booking link is active",
+          workingHours: "Working hours configured",
+        },
+      },
     },
+
   },
   auth: {
     title: "SchedlyOps",

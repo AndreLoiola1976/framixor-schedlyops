@@ -334,7 +334,37 @@ export const ptBR: Dictionary = {
       copyFailed: "Não foi possível copiar o link",
       noSlug: "Publique seu perfil para ativar sua página pública de reservas.",
       topbarLabel: "Ver página de reservas",
+      launchKit: {
+        shareTitle: "Compartilhe esta página",
+        checklistTitle: "Pronto para compartilhar",
+        progress: "{done} de {total} prontos",
+        comingSoon: "Em breve",
+        copied: "Copiado para a área de transferência",
+        copyFailed: "Não foi possível copiar o texto",
+        share: {
+          instagram: {
+            label: "Bio do Instagram",
+            template: "✂️ Agende online na {name} → {url}",
+          },
+          whatsapp: {
+            label: "Mensagem de WhatsApp",
+            template: "Olá! Você pode agendar seu horário na {name} por aqui: {url}",
+          },
+          googleBusiness: {
+            label: "Post do Google Meu Negócio",
+            template: "Agende sua próxima visita à {name} online — {url}",
+          },
+        },
+        checklist: {
+          businessName: "Nome do negócio definido",
+          activeService: "Pelo menos um serviço ativo",
+          activeProfessional: "Pelo menos um profissional ativo",
+          bookingLink: "Link de agendamento ativo",
+          workingHours: "Horário de funcionamento configurado",
+        },
+      },
     },
+
   },
   auth: {
     title: "SchedlyOps",
