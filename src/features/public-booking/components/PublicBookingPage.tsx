@@ -529,9 +529,10 @@ function ServiceList({
   return (
     <div
       className={cn(
-        "mt-4 flex flex-col gap-2 overflow-y-auto pr-1",
-        // Cap height on mobile/tablet, let lg column scroll own it
-        "max-h-[280px] lg:max-h-none lg:flex-1",
+        "mt-4 flex flex-col gap-2",
+        // Below lg the outer panel owns the scroll — no inner cap to avoid
+        // nested scrollbars or clipping the first row. lg+ column scrolls.
+        "lg:flex-1 lg:overflow-y-auto lg:pr-1",
       )}
       role="listbox"
       aria-label="Services"
