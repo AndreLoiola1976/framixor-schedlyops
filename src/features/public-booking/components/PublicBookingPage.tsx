@@ -194,18 +194,21 @@ export function PublicBookingPage({
   if (tenantQuery.isLoading) {
     return (
       <PageShell>
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+          <span>Loading…</span>
+        </div>
       </PageShell>
     );
   }
   if (tenantQuery.isError || !tenant) {
     return (
       <PageShell>
-        <div className="max-w-md text-center">
-          <h1 className="font-display text-3xl font-semibold text-foreground">
+        <div className="max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-[var(--shadow-elegant)]">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
             Booking page not found
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             We couldn't find a workspace at this link. Double-check the URL with the business that
             shared it.
           </p>
@@ -220,33 +223,50 @@ export function PublicBookingPage({
   return (
     <PageShell>
       <div className="w-full max-w-2xl">
-        <header className="mb-6 text-center">
-          <h1 className="font-display text-3xl font-semibold text-foreground">
+        <header className="mb-8 text-center">
+          <div className="mx-auto mb-5 h-px w-16 bg-accent" aria-hidden="true" />
+          <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-accent">
+            Book an appointment
+          </p>
+          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             {tenant.displayName}
           </h1>
-          {tenant.tagline && <p className="mt-1 text-sm text-muted-foreground">{tenant.tagline}</p>}
-          <p className="mt-3 text-sm text-muted-foreground">Book your appointment online.</p>
+          {tenant.tagline && (
+            <p className="mt-3 text-sm text-muted-foreground">{tenant.tagline}</p>
+          )}
         </header>
 
         {result ? (
-          <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-foreground">
+          <div className="rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-elegant)]">
+            <div className="flex items-center gap-3">
+              <span className="inline-block h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+              <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-accent">
+                {result.duplicate ? "Already submitted" : "Confirmed"}
+              </p>
+            </div>
+            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground">
               {result.duplicate ? "Already booked" : "You're booked!"}
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {result.duplicate
                 ? "This booking was already submitted. Use the manage link below if you need to make changes."
                 : "We've saved your appointment. Save the manage link below to make changes later."}
             </p>
-            <div className="mt-4 rounded border border-border bg-muted/30 p-3">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Booking ID</p>
-              <p className="mt-1 font-mono text-xs break-all">{result.bookingId || "—"}</p>
+            <div className="mt-5 rounded-lg border border-border bg-muted/40 p-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Booking ID
+              </p>
+              <p className="mt-1 font-mono text-xs break-all text-foreground">
+                {result.bookingId || "—"}
+              </p>
             </div>
             {manageUrl ? (
-              <div className="mt-3 rounded border border-border bg-muted/30 p-3">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Manage link</p>
+              <div className="mt-3 rounded-lg border border-border bg-muted/40 p-3">
+                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                  Manage link
+                </p>
                 <div className="mt-1 flex items-start gap-2">
-                  <code className="flex-1 break-all rounded bg-background/60 p-1.5 text-xs">
+                  <code className="flex-1 break-all rounded bg-background/70 p-1.5 text-xs text-foreground">
                     {manageUrl}
                   </code>
                   <Button
@@ -273,13 +293,16 @@ export function PublicBookingPage({
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-4 rounded-lg border border-border bg-card p-6 shadow-sm"
+            className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-elegant)] sm:p-8"
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pb-service">Service</Label>
                 <Select value={serviceId} onValueChange={setServiceId}>
-                  <SelectTrigger id="pb-service">
+                  <SelectTrigger
+                    id="pb-service"
+                    className={cn(serviceId && "border-accent/60 ring-1 ring-accent/30")}
+                  >
                     <SelectValue
                       placeholder={servicesQuery.isLoading ? "Loading…" : "Choose a service"}
                     />
@@ -297,7 +320,12 @@ export function PublicBookingPage({
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pb-pro">Professional</Label>
                 <Select value={professionalId} onValueChange={setProfessionalId}>
-                  <SelectTrigger id="pb-pro">
+                  <SelectTrigger
+                    id="pb-pro"
+                    className={cn(
+                      professionalId !== ANY_PRO && "border-accent/60 ring-1 ring-accent/30",
+                    )}
+                  >
                     <SelectValue
                       placeholder={professionalsQuery.isLoading ? "Loading…" : "Any professional"}
                     />
@@ -314,7 +342,7 @@ export function PublicBookingPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <Label>Date</Label>
                 <Popover>
@@ -325,9 +353,10 @@ export function PublicBookingPage({
                       className={cn(
                         "justify-start text-left font-normal",
                         !date && "text-muted-foreground",
+                        date && "border-accent/60 ring-1 ring-accent/30",
                       )}
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
                       {date ? format(date, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
@@ -355,7 +384,10 @@ export function PublicBookingPage({
                   onValueChange={setSlot}
                   disabled={!slotsReady || slotMap.isLoading}
                 >
-                  <SelectTrigger id="pb-slot">
+                  <SelectTrigger
+                    id="pb-slot"
+                    className={cn(slot && "border-accent/60 ring-1 ring-accent/30")}
+                  >
                     <SelectValue
                       placeholder={
                         !slotsReady
@@ -381,7 +413,7 @@ export function PublicBookingPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="pb-name">Your name</Label>
                 <Input
@@ -405,8 +437,13 @@ export function PublicBookingPage({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="submit" disabled={!canSubmit}>
+            <div className="mt-1 flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={!canSubmit}
+                className="w-full sm:w-auto"
+              >
                 {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Confirm booking
               </Button>
@@ -414,17 +451,23 @@ export function PublicBookingPage({
           </form>
         )}
 
-        <footer className="mt-6 text-center text-xs text-muted-foreground">
-          Powered by SchedlyOps
+        <footer className="mt-8 flex flex-col items-center gap-3 text-center">
+          <div className="h-px w-12 bg-accent/50" aria-hidden="true" />
+          <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+            Powered by SchedlyOps
+          </p>
         </footer>
       </div>
     </PageShell>
   );
 }
 
+// TODO(tenant-theme): when `tenant.theme_preset` ships, replace the hard-coded
+// `theme-sand-brass` class with `theme-${tenant.themePreset ?? "sand-brass"}`
+// and load tokens from the public tenant profile.
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen items-start justify-center bg-background px-4 py-10 sm:py-16">
+    <div className="theme-sand-brass flex min-h-screen items-start justify-center bg-background px-4 py-10 text-foreground sm:py-16">
       {children}
     </div>
   );

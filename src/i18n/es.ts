@@ -28,6 +28,7 @@ export const es: Dictionary = {
       light: "Claro",
       dark: "Oscuro",
       demoBarber: "Demo Barber",
+      sandBrass: "Arena y Latón",
     },
   },
   common: {

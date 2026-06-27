@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-export type ThemeMode = "light" | "dark" | "demo-barber";
+export type ThemeMode = "light" | "dark" | "demo-barber" | "sand-brass";
 
 export const THEME_STORAGE_KEY = "schedlyops.theme";
 /** Demo Ready phase: Demo Barber is the default theme for demonstrations. */

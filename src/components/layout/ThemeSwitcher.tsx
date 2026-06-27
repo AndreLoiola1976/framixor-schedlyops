@@ -1,4 +1,4 @@
-import { Check, Moon, Sparkles, Sun } from "lucide-react";
+import { Check, Moon, Scissors, Sparkles, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ export function ThemeSwitcher() {
     { value: "light", label: t.topbar.theme.light, Icon: Sun },
     { value: "dark", label: t.topbar.theme.dark, Icon: Moon },
     { value: "demo-barber", label: t.topbar.theme.demoBarber, Icon: Sparkles },
+    { value: "sand-brass", label: t.topbar.theme.sandBrass, Icon: Scissors },
   ];
 
   const active = options.find((o) => o.value === theme) ?? options[2];

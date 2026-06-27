@@ -26,6 +26,7 @@ export const en = {
       light: "Light",
       dark: "Dark",
       demoBarber: "Demo Barber",
+      sandBrass: "Sand & Brass",
     },
   },
   common: {
