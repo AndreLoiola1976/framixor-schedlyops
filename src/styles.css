@@ -258,3 +258,66 @@
   --gradient-primary: linear-gradient(135deg, hsl(43 70% 56%), hsl(33 85% 45%));
   --shadow-elegant: 0 10px 30px -10px hsl(43 70% 51% / 0.35);
 }
+
+/* ============================================================
+ * Sand & Brass theme — premium light palette for public-facing pages.
+ * Selector: html.theme-sand-brass OR any ancestor with .theme-sand-brass.
+ * Tokens: warm cream surfaces, near-black ink, brass accents.
+ * Does NOT modify :root, .dark, or .theme-demo-barber.
+ * TODO(tenant-theme): once `tenant.theme_preset` ships, expose this as a
+ * selectable preset and apply per-tenant via the public profile loader.
+ * ============================================================ */
+.theme-sand-brass {
+  --background: oklch(0.965 0.022 84);
+  --foreground: oklch(0.2 0.012 60);
+
+  --card: oklch(0.99 0.014 86);
+  --card-foreground: oklch(0.2 0.012 60);
+
+  --popover: oklch(0.99 0.014 86);
+  --popover-foreground: oklch(0.2 0.012 60);
+
+  --primary: oklch(0.2 0.012 60);
+  --primary-foreground: oklch(0.97 0.018 86);
+
+  --secondary: oklch(0.93 0.028 82);
+  --secondary-foreground: oklch(0.2 0.012 60);
+
+  --muted: oklch(0.93 0.022 82);
+  --muted-foreground: oklch(0.5 0.018 70);
+
+  --accent: oklch(0.76 0.115 80);
+  --accent-foreground: oklch(0.18 0.012 60);
+
+  --destructive: oklch(0.55 0.2 27);
+  --destructive-foreground: oklch(0.98 0.018 86);
+
+  --success: oklch(0.62 0.12 150);
+  --success-foreground: oklch(0.98 0.018 86);
+
+  --warning: oklch(0.78 0.13 75);
+  --warning-foreground: oklch(0.2 0.012 60);
+
+  --border: oklch(0.88 0.028 80);
+  --input: oklch(0.9 0.024 82);
+  --ring: oklch(0.76 0.115 80);
+
+  --chart-1: oklch(0.76 0.115 80);
+  --chart-2: oklch(0.55 0.08 65);
+  --chart-3: oklch(0.7 0.1 145);
+  --chart-4: oklch(0.6 0.14 35);
+  --chart-5: oklch(0.4 0.04 70);
+
+  --sidebar: oklch(0.97 0.02 84);
+  --sidebar-foreground: oklch(0.2 0.012 60);
+  --sidebar-primary: oklch(0.2 0.012 60);
+  --sidebar-primary-foreground: oklch(0.97 0.018 86);
+  --sidebar-accent: oklch(0.93 0.028 82);
+  --sidebar-accent-foreground: oklch(0.2 0.012 60);
+  --sidebar-border: oklch(0.88 0.028 80);
+  --sidebar-ring: oklch(0.76 0.115 80);
+
+  /* Premium accents: brass gradient + warm elevation. */
+  --gradient-primary: linear-gradient(135deg, oklch(0.82 0.12 82), oklch(0.68 0.13 70));
+  --shadow-elegant: 0 24px 60px -28px oklch(0.3 0.04 60 / 0.35), 0 2px 8px -2px oklch(0.3 0.04 60 / 0.08);
+}
