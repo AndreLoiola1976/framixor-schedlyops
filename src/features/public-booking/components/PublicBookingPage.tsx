@@ -298,10 +298,15 @@ export function PublicBookingPage({
           />
         ) : (
           <form onSubmit={handleSubmit} className="flex h-full flex-col">
-            {/* Body: single column < lg, two columns lg+ */}
-            <div className="flex-1 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-0">
+            {/*
+              Body scrolling:
+              - <lg: single outer scroll (no nested scrollers, no scrollbar
+                inside scrollbar). Both column groups flow naturally.
+              - lg+: two side-by-side columns, each owns its own scroll.
+            */}
+            <div className="flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-0 lg:overflow-hidden">
               {/* Left column (lg+) / top stack on mobile/tablet */}
-              <div className="flex flex-col gap-0 overflow-y-auto px-5 pb-4 pt-5 sm:px-7 lg:h-full lg:border-r lg:border-border lg:px-8 lg:pb-6">
+              <div className="flex flex-col gap-0 px-5 pt-6 sm:px-7 lg:h-full lg:overflow-y-auto lg:border-r lg:border-border lg:px-8 lg:pb-6 lg:pt-5">
                 <IdentityHeader tenant={tenant} />
                 <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
                   Book your chair
@@ -316,7 +321,7 @@ export function PublicBookingPage({
               </div>
 
               {/* Right column (lg+) / continuation on mobile/tablet */}
-              <div className="flex flex-col overflow-y-auto px-5 pb-4 sm:px-7 lg:h-full lg:px-8 lg:pt-5">
+              <div className="flex flex-col px-5 pb-5 sm:px-7 lg:h-full lg:overflow-y-auto lg:px-8 lg:pb-6 lg:pt-5">
                 {proPills}
                 <DayStrip
                   cells={dayStrip}
