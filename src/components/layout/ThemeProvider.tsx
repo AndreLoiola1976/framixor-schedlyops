@@ -42,7 +42,7 @@ function readStoredTheme(): ThemeMode {
   if (typeof window === "undefined") return DEFAULT_THEME;
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark" || stored === "demo-barber") return stored;
+    if (stored === "light" || stored === "dark" || stored === "demo-barber" || stored === "sand-brass") return stored;
   } catch {
     // ignore
   }
