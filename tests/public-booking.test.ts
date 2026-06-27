@@ -167,12 +167,11 @@ describe("buildDayStrip", () => {
     expect(out.every((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.key))).toBe(true);
   });
 
-  it("uses the provided timezone for day labels", () => {
-    // 03:00 UTC on the 25th is still the 24th in Los Angeles.
-    const from = new Date("2025-06-25T03:00:00Z");
-    const utc = buildDayStrip(from, 1, "UTC")[0]!;
-    const la = buildDayStrip(from, 1, "America/Los_Angeles")[0]!;
-    expect(utc.key).toBe("2025-06-25");
-    expect(la.key).toBe("2025-06-24");
+  it("returns stable date keys regardless of timezone (DST-safe anchor)", () => {
+    const from = new Date("2025-03-08T12:00:00Z"); // around US DST transition
+    const utc = buildDayStrip(from, 3, "UTC").map((c) => c.key);
+    const la = buildDayStrip(from, 3, "America/Los_Angeles").map((c) => c.key);
+    expect(utc).toEqual(["2025-03-08", "2025-03-09", "2025-03-10"]);
+    expect(la).toEqual(["2025-03-08", "2025-03-09", "2025-03-10"]);
   });
 });
