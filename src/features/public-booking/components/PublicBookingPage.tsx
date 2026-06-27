@@ -23,6 +23,9 @@ import type { PublicTenantProfile } from "../api/publicTenant";
 const ANY_PRO = "any";
 const DAY_STRIP_COUNT = 7;
 
+// Hide native scrollbars on horizontal strips while keeping scroll behavior.
+const HIDE_SCROLLBAR = "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
 function toDateKey(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -232,10 +235,10 @@ export function PublicBookingPage({
     return (
       <PageShell>
         <DeviceFrame>
-          <div className="flex h-full min-h-[420px] items-center justify-center gap-2 text-sm text-muted-foreground">
+          <CenteredMessage>
             <Loader2 className="h-4 w-4 animate-spin text-accent" />
-            <span>Loading…</span>
-          </div>
+            <span className="text-sm text-muted-foreground">Loading…</span>
+          </CenteredMessage>
         </DeviceFrame>
       </PageShell>
     );
@@ -244,15 +247,17 @@ export function PublicBookingPage({
     return (
       <PageShell>
         <DeviceFrame>
-          <div className="flex h-full min-h-[420px] flex-col items-center justify-center p-8 text-center">
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
-              Booking page not found
-            </h1>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              We couldn't find a workspace at this link. Double-check the URL with the
-              business that shared it.
-            </p>
-          </div>
+          <CenteredMessage>
+            <div className="mx-auto max-w-md p-8 text-center">
+              <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+                Booking page not found
+              </h1>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                We couldn't find a workspace at this link. Double-check the URL with the
+                business that shared it.
+              </p>
+            </div>
+          </CenteredMessage>
         </DeviceFrame>
       </PageShell>
     );
@@ -271,6 +276,15 @@ export function PublicBookingPage({
     return `Confirm ${dayLabel} · ${time}`;
   })();
 
+  const proPills = professionals.length > 1 && (
+    <ProfessionalPills
+      professionals={professionals}
+      value={professionalId}
+      onChange={setProfessionalId}
+      isLoading={professionalsQuery.isLoading}
+    />
+  );
+
   return (
     <PageShell>
       <DeviceFrame statusPill={result ? "Booked · details confirmed" : null}>
@@ -283,71 +297,56 @@ export function PublicBookingPage({
             onReset={resetForm}
           />
         ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="flex h-full flex-col"
-          >
-            {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-6">
-              <IdentityHeader tenant={tenant} />
-
-              <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-foreground">
-                Book your chair
-              </h2>
-
-              <ServiceList
-                services={services}
-                isLoading={servicesQuery.isLoading}
-                value={serviceId}
-                onChange={setServiceId}
-              />
-
-              <MetaStrip
-                proName={selectedPro}
-                tagline={tenant.tagline}
-              />
-
-              {professionals.length > 1 && (
-                <ProfessionalPills
-                  professionals={professionals}
-                  value={professionalId}
-                  onChange={setProfessionalId}
-                  isLoading={professionalsQuery.isLoading}
+          <form onSubmit={handleSubmit} className="flex h-full flex-col">
+            {/* Body: single column < lg, two columns lg+ */}
+            <div className="flex-1 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:gap-0">
+              {/* Left column (lg+) / top stack on mobile/tablet */}
+              <div className="flex flex-col gap-0 overflow-y-auto px-5 pb-4 pt-5 sm:px-7 lg:h-full lg:border-r lg:border-border lg:px-8 lg:pb-6">
+                <IdentityHeader tenant={tenant} />
+                <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
+                  Book your chair
+                </h2>
+                <ServiceList
+                  services={services}
+                  isLoading={servicesQuery.isLoading}
+                  value={serviceId}
+                  onChange={setServiceId}
                 />
-              )}
+                <MetaStrip proName={selectedPro} tagline={tenant.tagline} />
+              </div>
 
-              <DayStrip
-                cells={dayStrip}
-                value={dateKey}
-                onPick={(key) => {
-                  // Hydration-safe: parse YYYY-MM-DD as a local date and store it.
-                  const [y, m, d] = key.split("-").map((n) => Number.parseInt(n, 10));
-                  if (y && m && d) setDate(new Date(y, m - 1, d));
-                }}
-              />
-
-              <MoreDatesTrigger date={date} onPick={setDate} />
-
-              <TimePills
-                slots={slots}
-                value={slot}
-                onPick={setSlot}
-                timezone={tenant.timezone}
-                ready={slotsReady}
-                isLoading={slotMap.isLoading}
-                disabledReason={slotMap.disabledReason}
-              />
-
-              <FormFields
-                name={customerName}
-                phone={customerPhone}
-                onName={setCustomerName}
-                onPhone={setCustomerPhone}
-              />
+              {/* Right column (lg+) / continuation on mobile/tablet */}
+              <div className="flex flex-col overflow-y-auto px-5 pb-4 sm:px-7 lg:h-full lg:px-8 lg:pt-5">
+                {proPills}
+                <DayStrip
+                  cells={dayStrip}
+                  value={dateKey}
+                  onPick={(key) => {
+                    const [y, m, d] = key.split("-").map((n) => Number.parseInt(n, 10));
+                    if (y && m && d) setDate(new Date(y, m - 1, d));
+                  }}
+                />
+                <MoreDatesTrigger date={date} onPick={setDate} />
+                <TimePills
+                  slots={slots}
+                  value={slot}
+                  onPick={setSlot}
+                  timezone={tenant.timezone}
+                  ready={slotsReady}
+                  isLoading={slotMap.isLoading}
+                  disabledReason={slotMap.disabledReason}
+                />
+                <FormFields
+                  name={customerName}
+                  phone={customerPhone}
+                  onName={setCustomerName}
+                  onPhone={setCustomerPhone}
+                />
+              </div>
             </div>
 
-            {/* Sticky CTA */}
-            <div className="border-t border-border bg-card px-5 py-4 sm:px-6">
+            {/* Sticky CTA — full width across both columns */}
+            <div className="border-t border-border bg-card px-5 py-4 sm:px-7 lg:px-8">
               <Button
                 type="submit"
                 size="lg"
@@ -377,7 +376,7 @@ export function PublicBookingPage({
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="theme-sand-brass min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-between gap-6 px-0 py-0 sm:gap-10 sm:px-6 sm:py-12">
+      <div className="mx-auto flex min-h-screen max-w-[1200px] flex-col items-center justify-between gap-6 px-0 py-0 sm:gap-8 sm:px-6 sm:py-10 lg:py-12">
         <div className="hidden sm:block" />
         {children}
         <footer className="hidden flex-col items-center gap-2 pb-6 text-center sm:flex">
@@ -406,23 +405,33 @@ function DeviceFrame({
           {statusPill}
         </div>
       )}
-      {/* Desktop: device bezel; Mobile: edge-to-edge cream panel */}
+      {/*
+        Three modes, breakpoint-driven:
+        - mobile (<sm): full-bleed cream panel, no bezel
+        - sm/md (>=sm, <lg): portrait tablet bezel
+        - lg+: landscape tablet bezel with 2-column interior
+      */}
       <div
         className={cn(
           // Mobile: full bleed, no bezel
           "min-h-screen w-full bg-card",
-          // Desktop: black bezel + rounded inner panel
-          "sm:min-h-0 sm:w-[420px] sm:rounded-[2.75rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
+          // sm/md: portrait tablet bezel
+          "sm:min-h-0 sm:w-[min(640px,calc(100vw-3rem))] sm:rounded-[2.5rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
+          // lg+: landscape tablet, wider than tall
+          "lg:w-[min(1120px,calc(100vw-4rem))] lg:rounded-[2rem] lg:p-4",
         )}
       >
         <div
           className={cn(
-            "flex h-full flex-col sm:overflow-hidden sm:rounded-[2.25rem] sm:bg-card",
-            "sm:h-[760px]",
+            "flex h-full flex-col sm:overflow-hidden sm:rounded-[2rem] sm:bg-card",
+            // Portrait tablet height
+            "sm:h-[min(820px,calc(100vh-6rem))]",
+            // Landscape tablet height — wider than tall
+            "lg:h-[min(700px,calc(100vh-8rem))] lg:rounded-[1.5rem]",
           )}
         >
           {/* Faux status row — desktop only, sells the device illusion */}
-          <div className="hidden items-center justify-between px-6 pt-4 text-[11px] font-medium text-foreground/70 sm:flex">
+          <div className="hidden items-center justify-between px-6 pt-4 text-[11px] font-medium text-foreground/70 sm:flex lg:px-8">
             <span>9:41</span>
             <span className="flex items-center gap-1">
               <span className="h-1 w-1 rounded-full bg-foreground/70" />
@@ -433,13 +442,21 @@ function DeviceFrame({
           <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
         </div>
       </div>
-      {/* Mobile footer (inside the cream panel area, outside the scroll) */}
+      {/* Mobile footer (outside the panel scroll) */}
       <footer className="flex flex-col items-center gap-2 bg-background py-5 text-center sm:hidden">
         <div className="h-px w-12 bg-accent/50" aria-hidden="true" />
         <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
           Powered by SchedlyOps
         </p>
       </footer>
+    </div>
+  );
+}
+
+function CenteredMessage({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-full min-h-[420px] flex-1 items-center justify-center gap-2">
+      {children}
     </div>
   );
 }
@@ -456,15 +473,15 @@ function IdentityHeader({ tenant }: { tenant: PublicTenantProfile }) {
         <img
           src={tenant.logoUrl}
           alt=""
-          className="h-11 w-11 shrink-0 rounded-md object-cover"
+          className="h-11 w-11 shrink-0 rounded-md object-cover lg:h-12 lg:w-12"
         />
       ) : (
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-foreground text-[13px] font-semibold tracking-wider text-accent">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-foreground text-[13px] font-semibold tracking-wider text-accent lg:h-12 lg:w-12">
           {initials}
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-base font-semibold text-foreground">
+        <p className="truncate font-display text-base font-semibold text-foreground lg:text-lg">
           {tenant.displayName}
         </p>
         {tenant.tagline && (
@@ -503,10 +520,13 @@ function ServiceList({
       </p>
     );
   }
-  // Cap visible height so the panel doesn't stretch; scrolls inside.
   return (
     <div
-      className="mt-4 flex max-h-[260px] flex-col gap-2 overflow-y-auto pr-1"
+      className={cn(
+        "mt-4 flex flex-col gap-2 overflow-y-auto pr-1",
+        // Cap height on mobile/tablet, let lg column scroll own it
+        "max-h-[280px] lg:max-h-none lg:flex-1",
+      )}
       role="listbox"
       aria-label="Services"
     >
@@ -581,14 +601,14 @@ function ProfessionalPills({
 }) {
   if (isLoading) {
     return (
-      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground lg:mt-0">
         <Loader2 className="h-3 w-3 animate-spin text-accent" />
         Loading staff…
       </div>
     );
   }
   return (
-    <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+    <div className="mt-5 flex flex-wrap gap-2 lg:mt-0">
       <PillButton
         active={value === ANY_PRO}
         onClick={() => onChange(ANY_PRO)}
@@ -618,11 +638,15 @@ function DayStrip({
   onPick: (key: string) => void;
 }) {
   if (cells.length === 0) {
-    // Hydration-safe placeholder while client builds the strip.
     return <div className="mt-4 h-[72px]" aria-hidden="true" />;
   }
   return (
-    <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1">
+    <div
+      className={cn(
+        "-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1",
+        HIDE_SCROLLBAR,
+      )}
+    >
       {cells.map((c) => {
         const selected = value === c.key;
         return (
@@ -808,64 +832,68 @@ function SuccessView({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-6">
-        <IdentityHeader tenant={tenant} />
-        <div className="mt-6 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
-          <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-accent">
-            {result.duplicate ? "Already submitted" : "Confirmed"}
-          </p>
-        </div>
-        <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground">
-          {result.duplicate ? "Already booked" : "You're booked!"}
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          {result.duplicate
-            ? "This booking was already submitted. Use the manage link below if you need to make changes."
-            : "We've saved your appointment. Save the manage link below to make changes later."}
-        </p>
-        <div className="mt-5 rounded-xl border border-border bg-muted/40 p-3">
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Booking ID
-          </p>
-          <p className="mt-1 break-all font-mono text-xs text-foreground">
-            {result.bookingId || "—"}
-          </p>
-        </div>
-        {manageUrl && (
-          <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
-            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Manage link
-            </p>
-            <div className="mt-1 flex items-start gap-2">
-              <code className="flex-1 break-all rounded bg-background/70 p-1.5 text-xs text-foreground">
-                {manageUrl}
-              </code>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={onCopy}
-                className="shrink-0"
-              >
-                <Copy className="mr-1 h-3 w-3" /> Copy
-              </Button>
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              This link is shown only once — save it now.
+      <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-7 lg:px-8">
+        <div className="mx-auto w-full max-w-lg">
+          <IdentityHeader tenant={tenant} />
+          <div className="mt-6 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+            <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-accent">
+              {result.duplicate ? "Already submitted" : "Confirmed"}
             </p>
           </div>
-        )}
+          <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
+            {result.duplicate ? "Already booked" : "You're booked!"}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {result.duplicate
+              ? "This booking was already submitted. Use the manage link below if you need to make changes."
+              : "We've saved your appointment. Save the manage link below to make changes later."}
+          </p>
+          <div className="mt-5 rounded-xl border border-border bg-muted/40 p-3">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Booking ID
+            </p>
+            <p className="mt-1 break-all font-mono text-xs text-foreground">
+              {result.bookingId || "—"}
+            </p>
+          </div>
+          {manageUrl && (
+            <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+                Manage link
+              </p>
+              <div className="mt-1 flex items-start gap-2">
+                <code className="flex-1 break-all rounded bg-background/70 p-1.5 text-xs text-foreground">
+                  {manageUrl}
+                </code>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onCopy}
+                  className="shrink-0"
+                >
+                  <Copy className="mr-1 h-3 w-3" /> Copy
+                </Button>
+              </div>
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                This link is shown only once — save it now.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="border-t border-border bg-card px-5 py-4 sm:px-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onReset}
-          className="w-full"
-        >
-          Book another
-        </Button>
+      <div className="border-t border-border bg-card px-5 py-4 sm:px-7 lg:px-8">
+        <div className="mx-auto w-full max-w-lg">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onReset}
+            className="w-full"
+          >
+            Book another
+          </Button>
+        </div>
       </div>
     </div>
   );
