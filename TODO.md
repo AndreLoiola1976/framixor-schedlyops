@@ -13,10 +13,18 @@ Tracked gaps after this pass. Order is rough; demo-blockers first.
 
 
 
-- **Set `VITE_PUBLIC_BOOKING_BASE_URL`** for the deployed storefront host
-  (e.g. `https://demo-barber.lovable.app`). Without it the "Your booking
-  page" card and TopBar link fall back to the current operator origin,
-  which works locally but is wrong in production.
+- **Set `VITE_PUBLIC_BOOKING_BASE_URL` before Founder Beta / customer sharing.**
+  Required: configure in Workspace Settings → Build Secrets to a verified public
+  production host (e.g. `https://schedlyops.com`, `https://app.schedlyops.com`,
+  `https://booking.schedlyops.com`, or a verified public Lovable/Vercel host).
+  Without it, `getPublicBookingBaseUrl()` falls back to `window.location.origin`,
+  which in preview/editor environments produces Lovable-gated URLs — verified:
+  the `lovableproject.com` GUID host prompts a Lovable login for logged-out
+  visitors, breaking shared links. Do not add a preview-host fallback in code
+  and do not share preview-copied links with real customers. Re-verify Settings
+  "Copy link", TopBar "Open", and Launch Kit Instagram/WhatsApp/Google Business
+  snippets after the secret is set. See `docs/P0_CLOSURE.md` → "Public booking
+  base URL policy".
 - **Logo upload** (out of scope this pass). Wire Supabase Storage bucket +
   signed upload, write resulting URL through `p_logo_url`.
 - **IANA timezone combobox** for `TenantSettingsSection` (P0_CLOSURE tech-debt
