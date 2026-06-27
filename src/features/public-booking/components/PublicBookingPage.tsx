@@ -7,13 +7,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { SlotTakenError } from "@/lib/booking-public";
 import { toUserMessage } from "@/lib/scheduling-errors";
@@ -22,8 +15,13 @@ import { usePublicTenant } from "../hooks/usePublicTenant";
 import { usePublicProfessionals, usePublicServices } from "../hooks/usePublicCatalog";
 import { resolveProfessionalForSlot, usePublicSlots } from "../hooks/usePublicSlots";
 import { validatePreselection } from "../lib/validatePreselection";
+import { buildDayStrip, type DayCell } from "../lib/dayStrip";
+import type { PublicService } from "../api/publicServices";
+import type { PublicProfessional } from "../api/publicProfessionals";
+import type { PublicTenantProfile } from "../api/publicTenant";
 
 const ANY_PRO = "any";
+const DAY_STRIP_COUNT = 7;
 
 function toDateKey(d: Date): string {
   const y = d.getFullYear();
@@ -35,12 +33,43 @@ function toDateKey(d: Date): string {
 function formatSlotTime(iso: string, timezone: string | null | undefined): string {
   try {
     return new Intl.DateTimeFormat(undefined, {
-      hour: "2-digit",
+      hour: "numeric",
       minute: "2-digit",
       timeZone: timezone || undefined,
     }).format(new Date(iso));
   } catch {
     return iso;
+  }
+}
+
+function formatPrice(cents: number): string | null {
+  if (!cents || cents <= 0) return null;
+  const dollars = cents / 100;
+  return `$${dollars % 1 === 0 ? dollars.toFixed(0) : dollars.toFixed(2)}`;
+}
+
+function formatDuration(min: number): string | null {
+  if (!min || min <= 0) return null;
+  return `${min}M`;
+}
+
+function deriveInitials(name: string): string {
+  const cleaned = name.trim();
+  if (!cleaned) return "·";
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  const letters = parts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "");
+  return letters.join("") || cleaned[0]!.toUpperCase();
+}
+
+function weekdayLong(iso: string | undefined, tz: string | null | undefined): string {
+  if (!iso) return "";
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      timeZone: tz || undefined,
+    }).format(new Date(iso));
+  } catch {
+    return "";
   }
 }
 
@@ -63,7 +92,10 @@ export function PublicBookingPage({
   const professionalsQuery = usePublicProfessionals(tenantSlug, tenantReady);
 
   const services = useMemo(() => servicesQuery.data ?? [], [servicesQuery.data]);
-  const professionals = useMemo(() => professionalsQuery.data ?? [], [professionalsQuery.data]);
+  const professionals = useMemo(
+    () => professionalsQuery.data ?? [],
+    [professionalsQuery.data],
+  );
 
   const [serviceId, setServiceId] = useState("");
   const [professionalId, setProfessionalId] = useState<string>(ANY_PRO);
@@ -101,6 +133,12 @@ export function PublicBookingPage({
     professionals,
   ]);
 
+  // Day strip — built client-side after mount so SSR/CSR markup matches.
+  const [dayStrip, setDayStrip] = useState<DayCell[]>([]);
+  useEffect(() => {
+    setDayStrip(buildDayStrip(new Date(), DAY_STRIP_COUNT, tenant?.timezone));
+  }, [tenant?.timezone]);
+
   const dateKey = useMemo(() => (date ? toDateKey(date) : ""), [date]);
 
   const slotMap = usePublicSlots({
@@ -135,7 +173,6 @@ export function PublicBookingPage({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    // Resolve professional id (for "any" → pick from fan-out map).
     const resolvedPro =
       professionalId === ANY_PRO
         ? resolveProfessionalForSlot(slotMap.bySlot, slot, preselectedProfessionalId)
@@ -190,285 +227,672 @@ export function PublicBookingPage({
     setResult(null);
   }
 
-  // --- Loading / error / not-found gating ---
+  // --- Loading / error / not-found ---
   if (tenantQuery.isLoading) {
     return (
       <PageShell>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin text-accent" />
-          <span>Loading…</span>
-        </div>
+        <DeviceFrame>
+          <div className="flex h-full min-h-[420px] items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-accent" />
+            <span>Loading…</span>
+          </div>
+        </DeviceFrame>
       </PageShell>
     );
   }
   if (tenantQuery.isError || !tenant) {
     return (
       <PageShell>
-        <div className="max-w-md rounded-2xl border border-border bg-card p-8 text-center shadow-[var(--shadow-elegant)]">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
-            Booking page not found
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            We couldn't find a workspace at this link. Double-check the URL with the business that
-            shared it.
-          </p>
-        </div>
+        <DeviceFrame>
+          <div className="flex h-full min-h-[420px] flex-col items-center justify-center p-8 text-center">
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground">
+              Booking page not found
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              We couldn't find a workspace at this link. Double-check the URL with the
+              business that shared it.
+            </p>
+          </div>
+        </DeviceFrame>
       </PageShell>
     );
   }
 
   const slotsReady = !!serviceId && !!dateKey;
   const slots = slotMap.slots;
+  const selectedPro =
+    professionalId !== ANY_PRO
+      ? (professionals.find((p) => p.id === professionalId)?.name ?? null)
+      : null;
+  const ctaLabel = (() => {
+    if (!slot) return "Confirm booking";
+    const dayLabel = weekdayLong(slot, tenant.timezone);
+    const time = formatSlotTime(slot, tenant.timezone);
+    return `Confirm ${dayLabel} · ${time}`;
+  })();
 
   return (
     <PageShell>
-      <div className="w-full max-w-2xl">
-        <header className="mb-8 text-center">
-          <div className="mx-auto mb-5 h-px w-16 bg-accent" aria-hidden="true" />
-          <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-accent">
-            Book an appointment
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            {tenant.displayName}
-          </h1>
-          {tenant.tagline && (
-            <p className="mt-3 text-sm text-muted-foreground">{tenant.tagline}</p>
-          )}
-        </header>
-
+      <DeviceFrame statusPill={result ? "Booked · details confirmed" : null}>
         {result ? (
-          <div className="rounded-2xl border border-border bg-card p-7 shadow-[var(--shadow-elegant)]">
-            <div className="flex items-center gap-3">
-              <span className="inline-block h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
-              <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-accent">
-                {result.duplicate ? "Already submitted" : "Confirmed"}
-              </p>
-            </div>
-            <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground">
-              {result.duplicate ? "Already booked" : "You're booked!"}
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {result.duplicate
-                ? "This booking was already submitted. Use the manage link below if you need to make changes."
-                : "We've saved your appointment. Save the manage link below to make changes later."}
-            </p>
-            <div className="mt-5 rounded-lg border border-border bg-muted/40 p-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Booking ID
-              </p>
-              <p className="mt-1 font-mono text-xs break-all text-foreground">
-                {result.bookingId || "—"}
-              </p>
-            </div>
-            {manageUrl ? (
-              <div className="mt-3 rounded-lg border border-border bg-muted/40 p-3">
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                  Manage link
-                </p>
-                <div className="mt-1 flex items-start gap-2">
-                  <code className="flex-1 break-all rounded bg-background/70 p-1.5 text-xs text-foreground">
-                    {manageUrl}
-                  </code>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={copyManageLink}
-                    className="shrink-0"
-                  >
-                    <Copy className="mr-1 h-3 w-3" /> Copy
-                  </Button>
-                </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  This link is shown only once — save it now.
-                </p>
-              </div>
-            ) : null}
-            <div className="mt-6 flex justify-end">
-              <Button type="button" variant="outline" onClick={resetForm}>
-                Book another
-              </Button>
-            </div>
-          </div>
+          <SuccessView
+            tenant={tenant}
+            result={result}
+            manageUrl={manageUrl}
+            onCopy={copyManageLink}
+            onReset={resetForm}
+          />
         ) : (
           <form
             onSubmit={handleSubmit}
-            className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-elegant)] sm:p-8"
+            className="flex h-full flex-col"
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="pb-service">Service</Label>
-                <Select value={serviceId} onValueChange={setServiceId}>
-                  <SelectTrigger
-                    id="pb-service"
-                    className={cn(serviceId && "border-accent/60 ring-1 ring-accent/30")}
-                  >
-                    <SelectValue
-                      placeholder={servicesQuery.isLoading ? "Loading…" : "Choose a service"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-6">
+              <IdentityHeader tenant={tenant} />
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="pb-pro">Professional</Label>
-                <Select value={professionalId} onValueChange={setProfessionalId}>
-                  <SelectTrigger
-                    id="pb-pro"
-                    className={cn(
-                      professionalId !== ANY_PRO && "border-accent/60 ring-1 ring-accent/30",
-                    )}
-                  >
-                    <SelectValue
-                      placeholder={professionalsQuery.isLoading ? "Loading…" : "Any professional"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ANY_PRO}>Any professional</SelectItem>
-                    {professionals.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              <h2 className="mt-5 font-display text-2xl font-semibold tracking-tight text-foreground">
+                Book your chair
+              </h2>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <Label>Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        "justify-start text-left font-normal",
-                        !date && "text-muted-foreground",
-                        date && "border-accent/60 ring-1 ring-accent/30",
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                      disabled={(d) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return d < today;
-                      }}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <ServiceList
+                services={services}
+                isLoading={servicesQuery.isLoading}
+                value={serviceId}
+                onChange={setServiceId}
+              />
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="pb-slot">Time</Label>
-                <Select
-                  value={slot}
-                  onValueChange={setSlot}
-                  disabled={!slotsReady || slotMap.isLoading}
-                >
-                  <SelectTrigger
-                    id="pb-slot"
-                    className={cn(slot && "border-accent/60 ring-1 ring-accent/30")}
-                  >
-                    <SelectValue
-                      placeholder={
-                        !slotsReady
-                          ? "Pick a service and date first"
-                          : slotMap.disabledReason === "too_many_professionals"
-                            ? "Please pick a specific professional"
-                            : slotMap.isLoading
-                              ? "Loading times…"
-                              : slots.length === 0
-                                ? "No times available"
-                                : "Pick a time"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {slots.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {formatSlotTime(s, tenant.timezone)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              <MetaStrip
+                proName={selectedPro}
+                tagline={tenant.tagline}
+              />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="pb-name">Your name</Label>
-                <Input
-                  id="pb-name"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  autoComplete="name"
-                  required
+              {professionals.length > 1 && (
+                <ProfessionalPills
+                  professionals={professionals}
+                  value={professionalId}
+                  onChange={setProfessionalId}
+                  isLoading={professionalsQuery.isLoading}
                 />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="pb-phone">Phone</Label>
-                <Input
-                  id="pb-phone"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  inputMode="tel"
-                  autoComplete="tel"
-                  required
-                />
-              </div>
+              )}
+
+              <DayStrip
+                cells={dayStrip}
+                value={dateKey}
+                onPick={(key) => {
+                  // Hydration-safe: parse YYYY-MM-DD as a local date and store it.
+                  const [y, m, d] = key.split("-").map((n) => Number.parseInt(n, 10));
+                  if (y && m && d) setDate(new Date(y, m - 1, d));
+                }}
+              />
+
+              <MoreDatesTrigger date={date} onPick={setDate} />
+
+              <TimePills
+                slots={slots}
+                value={slot}
+                onPick={setSlot}
+                timezone={tenant.timezone}
+                ready={slotsReady}
+                isLoading={slotMap.isLoading}
+                disabledReason={slotMap.disabledReason}
+              />
+
+              <FormFields
+                name={customerName}
+                phone={customerPhone}
+                onName={setCustomerName}
+                onPhone={setCustomerPhone}
+              />
             </div>
 
-            <div className="mt-1 flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+            {/* Sticky CTA */}
+            <div className="border-t border-border bg-card px-5 py-4 sm:px-6">
               <Button
                 type="submit"
                 size="lg"
                 disabled={!canSubmit}
-                className="w-full sm:w-auto"
+                className="w-full bg-foreground text-background hover:bg-foreground/90"
               >
-                {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Confirm booking
+                {createBooking.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {ctaLabel}
               </Button>
             </div>
           </form>
         )}
-
-        <footer className="mt-8 flex flex-col items-center gap-3 text-center">
-          <div className="h-px w-12 bg-accent/50" aria-hidden="true" />
-          <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
-            Powered by SchedlyOps
-          </p>
-        </footer>
-      </div>
+      </DeviceFrame>
     </PageShell>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Layout                                                              */
+/* ------------------------------------------------------------------ */
 
 // TODO(tenant-theme): when `tenant.theme_preset` ships, replace the hard-coded
 // `theme-sand-brass` class with `theme-${tenant.themePreset ?? "sand-brass"}`
 // and load tokens from the public tenant profile.
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="theme-sand-brass flex min-h-screen items-start justify-center bg-background px-4 py-10 text-foreground sm:py-16">
-      {children}
+    <div className="theme-sand-brass min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-between gap-6 px-0 py-0 sm:gap-10 sm:px-6 sm:py-12">
+        <div className="hidden sm:block" />
+        {children}
+        <footer className="hidden flex-col items-center gap-2 pb-6 text-center sm:flex">
+          <div className="h-px w-12 bg-accent/50" aria-hidden="true" />
+          <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+            Powered by SchedlyOps
+          </p>
+        </footer>
+      </div>
     </div>
+  );
+}
+
+function DeviceFrame({
+  children,
+  statusPill,
+}: {
+  children: React.ReactNode;
+  statusPill?: string | null;
+}) {
+  return (
+    <div className="relative w-full sm:w-auto">
+      {statusPill && (
+        <div className="absolute -top-3 right-4 z-10 hidden items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-medium text-foreground shadow-[var(--shadow-elegant)] sm:flex">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+          {statusPill}
+        </div>
+      )}
+      {/* Desktop: device bezel; Mobile: edge-to-edge cream panel */}
+      <div
+        className={cn(
+          // Mobile: full bleed, no bezel
+          "min-h-screen w-full bg-card",
+          // Desktop: black bezel + rounded inner panel
+          "sm:min-h-0 sm:w-[420px] sm:rounded-[2.75rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-full flex-col sm:overflow-hidden sm:rounded-[2.25rem] sm:bg-card",
+            "sm:h-[760px]",
+          )}
+        >
+          {/* Faux status row — desktop only, sells the device illusion */}
+          <div className="hidden items-center justify-between px-6 pt-4 text-[11px] font-medium text-foreground/70 sm:flex">
+            <span>9:41</span>
+            <span className="flex items-center gap-1">
+              <span className="h-1 w-1 rounded-full bg-foreground/70" />
+              <span className="h-1 w-1 rounded-full bg-foreground/70" />
+              <span className="h-1 w-1 rounded-full bg-foreground/70" />
+            </span>
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
+        </div>
+      </div>
+      {/* Mobile footer (inside the cream panel area, outside the scroll) */}
+      <footer className="flex flex-col items-center gap-2 bg-background py-5 text-center sm:hidden">
+        <div className="h-px w-12 bg-accent/50" aria-hidden="true" />
+        <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+          Powered by SchedlyOps
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Sections                                                            */
+/* ------------------------------------------------------------------ */
+
+function IdentityHeader({ tenant }: { tenant: PublicTenantProfile }) {
+  const initials = deriveInitials(tenant.displayName);
+  return (
+    <header className="flex items-center gap-3">
+      {tenant.logoUrl ? (
+        <img
+          src={tenant.logoUrl}
+          alt=""
+          className="h-11 w-11 shrink-0 rounded-md object-cover"
+        />
+      ) : (
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-foreground text-[13px] font-semibold tracking-wider text-accent">
+          {initials}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-display text-base font-semibold text-foreground">
+          {tenant.displayName}
+        </p>
+        {tenant.tagline && (
+          <p className="truncate text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+            {tenant.tagline}
+          </p>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function ServiceList({
+  services,
+  isLoading,
+  value,
+  onChange,
+}: {
+  services: PublicService[];
+  isLoading: boolean;
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  if (isLoading) {
+    return (
+      <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin text-accent" />
+        Loading services…
+      </div>
+    );
+  }
+  if (services.length === 0) {
+    return (
+      <p className="mt-4 rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+        No services available right now.
+      </p>
+    );
+  }
+  // Cap visible height so the panel doesn't stretch; scrolls inside.
+  return (
+    <div
+      className="mt-4 flex max-h-[260px] flex-col gap-2 overflow-y-auto pr-1"
+      role="listbox"
+      aria-label="Services"
+    >
+      {services.map((s) => {
+        const selected = value === s.id;
+        const price = formatPrice(s.priceCents);
+        const duration = formatDuration(s.durationMinutes);
+        return (
+          <button
+            key={s.id}
+            type="button"
+            role="option"
+            aria-selected={selected}
+            onClick={() => onChange(s.id)}
+            className={cn(
+              "group flex items-center justify-between gap-3 rounded-xl border bg-card px-4 py-3 text-left transition-all",
+              "hover:border-accent/60 hover:bg-secondary/60",
+              selected
+                ? "border-accent bg-secondary shadow-[inset_3px_0_0_0_var(--accent)]"
+                : "border-border",
+            )}
+          >
+            <div className="flex min-w-0 items-baseline gap-2">
+              <span className="truncate text-sm font-medium text-foreground">{s.name}</span>
+              {duration && (
+                <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  {duration}
+                </span>
+              )}
+            </div>
+            {price && (
+              <span className="shrink-0 text-sm font-semibold text-foreground">{price}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MetaStrip({
+  proName,
+  tagline,
+}: {
+  proName: string | null;
+  tagline: string | null;
+}) {
+  const left = proName ? `WITH ${proName}` : "WITH ANY PROFESSIONAL";
+  return (
+    <div className="mt-5 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
+      <span className="truncate">{left}</span>
+      {tagline && (
+        <>
+          <span aria-hidden="true">·</span>
+          <span className="truncate">{tagline}</span>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProfessionalPills({
+  professionals,
+  value,
+  onChange,
+  isLoading,
+}: {
+  professionals: PublicProfessional[];
+  value: string;
+  onChange: (id: string) => void;
+  isLoading: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <Loader2 className="h-3 w-3 animate-spin text-accent" />
+        Loading staff…
+      </div>
+    );
+  }
+  return (
+    <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+      <PillButton
+        active={value === ANY_PRO}
+        onClick={() => onChange(ANY_PRO)}
+      >
+        Any
+      </PillButton>
+      {professionals.map((p) => (
+        <PillButton
+          key={p.id}
+          active={value === p.id}
+          onClick={() => onChange(p.id)}
+        >
+          {p.name}
+        </PillButton>
+      ))}
+    </div>
+  );
+}
+
+function DayStrip({
+  cells,
+  value,
+  onPick,
+}: {
+  cells: DayCell[];
+  value: string;
+  onPick: (key: string) => void;
+}) {
+  if (cells.length === 0) {
+    // Hydration-safe placeholder while client builds the strip.
+    return <div className="mt-4 h-[72px]" aria-hidden="true" />;
+  }
+  return (
+    <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1">
+      {cells.map((c) => {
+        const selected = value === c.key;
+        return (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => onPick(c.key)}
+            className={cn(
+              "flex min-w-[58px] flex-col items-center gap-0.5 rounded-xl border px-3 py-2.5 transition-all",
+              selected
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-card text-foreground hover:border-accent/60 hover:bg-secondary/60",
+            )}
+            aria-pressed={selected}
+          >
+            <span
+              className={cn(
+                "text-[10px] font-medium uppercase tracking-[0.18em]",
+                selected ? "text-background/80" : "text-muted-foreground",
+              )}
+            >
+              {c.weekday}
+            </span>
+            <span className="text-base font-semibold">{c.day}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function MoreDatesTrigger({
+  date,
+  onPick,
+}: {
+  date: Date | undefined;
+  onPick: (d: Date | undefined) => void;
+}) {
+  return (
+    <div className="mt-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <CalendarIcon className="h-3 w-3" />
+            {date ? `Picked ${format(date, "PPP")}` : "Pick another date"}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date}
+            onSelect={onPick}
+            initialFocus
+            disabled={(d) => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              return d < today;
+            }}
+            className="pointer-events-auto p-3"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+function TimePills({
+  slots,
+  value,
+  onPick,
+  timezone,
+  ready,
+  isLoading,
+  disabledReason,
+}: {
+  slots: string[];
+  value: string;
+  onPick: (s: string) => void;
+  timezone: string | null | undefined;
+  ready: boolean;
+  isLoading: boolean;
+  disabledReason: string | null;
+}) {
+  let placeholder: string | null = null;
+  if (!ready) placeholder = "Pick a service and date to see times";
+  else if (disabledReason === "too_many_professionals")
+    placeholder = "Please pick a specific professional";
+  else if (isLoading) placeholder = "Loading times…";
+  else if (slots.length === 0) placeholder = "No times available";
+
+  return (
+    <div className="mt-4">
+      {placeholder ? (
+        <div className="rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          {placeholder}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {slots.map((s) => {
+            const selected = value === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => onPick(s)}
+                className={cn(
+                  "rounded-lg border px-3 py-2 text-sm transition-all",
+                  selected
+                    ? "border-accent bg-secondary text-foreground shadow-[inset_0_0_0_1px_var(--accent)]"
+                    : "border-border bg-card text-foreground hover:border-accent/60 hover:bg-secondary/60",
+                )}
+                aria-pressed={selected}
+              >
+                {formatSlotTime(s, timezone)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FormFields({
+  name,
+  phone,
+  onName,
+  onPhone,
+}: {
+  name: string;
+  phone: string;
+  onName: (v: string) => void;
+  onPhone: (v: string) => void;
+}) {
+  return (
+    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="pb-name" className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          Your name
+        </Label>
+        <Input
+          id="pb-name"
+          value={name}
+          onChange={(e) => onName(e.target.value)}
+          autoComplete="name"
+          required
+          className="bg-card"
+        />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="pb-phone" className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+          Phone
+        </Label>
+        <Input
+          id="pb-phone"
+          value={phone}
+          onChange={(e) => onPhone(e.target.value)}
+          inputMode="tel"
+          autoComplete="tel"
+          required
+          className="bg-card"
+        />
+      </div>
+    </div>
+  );
+}
+
+function SuccessView({
+  tenant,
+  result,
+  manageUrl,
+  onCopy,
+  onReset,
+}: {
+  tenant: PublicTenantProfile;
+  result: { bookingId: string; manageToken: string | null; duplicate: boolean };
+  manageUrl: string | null;
+  onCopy: () => void;
+  onReset: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-6">
+        <IdentityHeader tenant={tenant} />
+        <div className="mt-6 flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+          <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-accent">
+            {result.duplicate ? "Already submitted" : "Confirmed"}
+          </p>
+        </div>
+        <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-foreground">
+          {result.duplicate ? "Already booked" : "You're booked!"}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          {result.duplicate
+            ? "This booking was already submitted. Use the manage link below if you need to make changes."
+            : "We've saved your appointment. Save the manage link below to make changes later."}
+        </p>
+        <div className="mt-5 rounded-xl border border-border bg-muted/40 p-3">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+            Booking ID
+          </p>
+          <p className="mt-1 break-all font-mono text-xs text-foreground">
+            {result.bookingId || "—"}
+          </p>
+        </div>
+        {manageUrl && (
+          <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
+            <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Manage link
+            </p>
+            <div className="mt-1 flex items-start gap-2">
+              <code className="flex-1 break-all rounded bg-background/70 p-1.5 text-xs text-foreground">
+                {manageUrl}
+              </code>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={onCopy}
+                className="shrink-0"
+              >
+                <Copy className="mr-1 h-3 w-3" /> Copy
+              </Button>
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              This link is shown only once — save it now.
+            </p>
+          </div>
+        )}
+      </div>
+      <div className="border-t border-border bg-card px-5 py-4 sm:px-6">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onReset}
+          className="w-full"
+        >
+          Book another
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PillButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+        active
+          ? "border-accent bg-secondary text-foreground"
+          : "border-border bg-card text-muted-foreground hover:border-accent/60 hover:text-foreground",
+      )}
+      aria-pressed={active}
+    >
+      {children}
+    </button>
   );
 }
