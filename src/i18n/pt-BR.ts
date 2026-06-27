@@ -28,6 +28,7 @@ export const ptBR: Dictionary = {
       light: "Claro",
       dark: "Escuro",
       demoBarber: "Demo Barber",
+      sandBrass: "Areia & Latão",
     },
   },
   common: {
