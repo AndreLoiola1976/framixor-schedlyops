@@ -18,6 +18,7 @@ import { listPublicServices } from "@/features/public-booking/api/publicServices
 import { listPublicProfessionals } from "@/features/public-booking/api/publicProfessionals";
 import { validatePreselection } from "@/features/public-booking/lib/validatePreselection";
 import { resolveProfessionalForSlot } from "@/features/public-booking/hooks/usePublicSlots";
+import { buildDayStrip } from "@/features/public-booking/lib/dayStrip";
 
 beforeEach(() => {
   rpcMock.mockReset();
@@ -153,5 +154,24 @@ describe("resolveProfessionalForSlot", () => {
     const m = new Map<string, string[]>([["s", ["a", "b"]]]);
     expect(resolveProfessionalForSlot(m, "s", "z")).toBe("a");
     expect(resolveProfessionalForSlot(m, "s")).toBe("a");
+  });
+});
+
+describe("buildDayStrip", () => {
+  it("produces N sequential days with the expected shape", () => {
+    const from = new Date("2025-06-24T12:00:00Z"); // Tue
+    const out = buildDayStrip(from, 7, "UTC");
+    expect(out).toHaveLength(7);
+    expect(out[0]).toEqual({ key: "2025-06-24", weekday: "TUE", day: "24" });
+    expect(out[6]?.key).toBe("2025-06-30");
+    expect(out.every((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.key))).toBe(true);
+  });
+
+  it("returns stable date keys regardless of timezone (DST-safe anchor)", () => {
+    const from = new Date("2025-03-08T12:00:00Z"); // around US DST transition
+    const utc = buildDayStrip(from, 3, "UTC").map((c) => c.key);
+    const la = buildDayStrip(from, 3, "America/Los_Angeles").map((c) => c.key);
+    expect(utc).toEqual(["2025-03-08", "2025-03-09", "2025-03-10"]);
+    expect(la).toEqual(["2025-03-08", "2025-03-09", "2025-03-10"]);
   });
 });
