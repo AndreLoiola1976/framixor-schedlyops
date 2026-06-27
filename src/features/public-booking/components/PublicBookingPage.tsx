@@ -418,10 +418,11 @@ function DeviceFrame({
       */}
       <div
         className={cn(
-          // Mobile: full bleed, no bezel
-          "min-h-screen w-full bg-card",
+          // Mobile: full bleed, no bezel — locked to viewport height so the
+          // sticky CTA always sits at the bottom of the screen.
+          "h-[100dvh] w-full bg-card",
           // sm/md: portrait tablet bezel
-          "sm:min-h-0 sm:w-[min(640px,calc(100vw-3rem))] sm:rounded-[2.5rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
+          "sm:h-auto sm:w-[min(640px,calc(100vw-3rem))] sm:rounded-[2.5rem] sm:bg-foreground sm:p-3 sm:shadow-[var(--shadow-elegant)]",
           // lg+: landscape tablet, wider than tall
           "lg:w-[min(1120px,calc(100vw-4rem))] lg:rounded-[2rem] lg:p-4",
         )}
