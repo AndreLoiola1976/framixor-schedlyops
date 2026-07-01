@@ -163,11 +163,6 @@ export function PublicBookingPage({
 
   const createBooking = useCreateBooking();
 
-  const manageUrl = useMemo(() => {
-    if (!result?.manageToken) return null;
-    if (typeof window === "undefined") return `/b/${result.manageToken}`;
-    return `${window.location.origin}/b/${result.manageToken}`;
-  }, [result]);
 
   const canSubmit =
     !!serviceId &&
