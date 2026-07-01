@@ -110,6 +110,11 @@ export function PublicBookingPage({
     bookingId: string;
     manageToken: string | null;
     duplicate: boolean;
+    snapshot: {
+      serviceId: string;
+      resolvedProfessionalId: string | null;
+      startsAt: string;
+    };
   } | null>(null);
   const [preselectionApplied, setPreselectionApplied] = useState(false);
 
