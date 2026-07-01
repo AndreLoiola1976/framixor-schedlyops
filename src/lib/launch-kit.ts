@@ -28,7 +28,10 @@ export function buildShareSnippets({
   templates,
 }: BuildShareSnippetsInput): Record<ShareChannel, string> {
   const render = (tpl: string) =>
-    tpl.replaceAll("{name}", name || "").replaceAll("{url}", url || "").trim();
+    tpl
+      .replaceAll("{name}", name || "")
+      .replaceAll("{url}", url || "")
+      .trim();
   return {
     instagram: render(templates.instagram),
     whatsapp: render(templates.whatsapp),

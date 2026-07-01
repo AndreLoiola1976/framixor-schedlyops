@@ -3,13 +3,7 @@ import type { Professional } from "@/types/professional";
 import type { Service } from "@/types/service";
 import { dayKeyInTz } from "@/lib/today-key";
 
-export type QuickFilter =
-  | "today"
-  | "upcoming"
-  | "completed"
-  | "cancelled"
-  | "no_show"
-  | "all";
+export type QuickFilter = "today" | "upcoming" | "completed" | "cancelled" | "no_show" | "all";
 
 export const QUICK_FILTERS: QuickFilter[] = [
   "today",
@@ -95,11 +89,7 @@ export function filterAppointments(all: Appointment[], input: FilterInput): Appo
         if (a.startISO < nowISO) return false;
         if (isBlock) {
           // future blocks only — already gated above
-        } else if (
-          a.status === "cancelled" ||
-          a.status === "no_show" ||
-          a.status === "completed"
-        ) {
+        } else if (a.status === "cancelled" || a.status === "no_show" || a.status === "completed") {
           return false;
         }
         break;

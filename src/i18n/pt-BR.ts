@@ -364,7 +364,6 @@ export const ptBR: Dictionary = {
         },
       },
     },
-
   },
   auth: {
     title: "SchedlyOps",

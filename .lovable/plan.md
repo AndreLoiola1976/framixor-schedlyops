@@ -1,31 +1,22 @@
+## Correção format-only do CI
 
-## Goal
+Rodar os autofixers do projeto para limpar os erros de Prettier/ESLint, depois verificar.
 
-Public booking (`/book/:tenantSlug`) UI copy is English, but weekday/month labels currently follow the browser locale (e.g. "qui., 2 de jul." on pt-BR). Lock all visible date/time formatting in the public booking flow to `en-US` while preserving tenant timezone behavior.
+### Passos
 
-## Scope
+1. `bun run lint -- --fix` (ESLint com `eslint-plugin-prettier` reescreve os arquivos no formato correto).
+2. Se algum arquivo ainda reportar `prettier/prettier`, rodar `bunx prettier --write` apenas nesses arquivos.
+3. `bun run lint` — deve sair limpo.
+4. `bun run test` — deve continuar verde.
+5. `bun run typecheck` como sanity check.
 
-Frontend / presentation only. No RPC, no backend, no new features, no UI redesign, no manage/cancel links, no auth. `src/features/public-booking/lib/dayStrip.ts` already hardcodes `en-US`.
+### Guardrails
 
-## Changes
+- Sem edições manuais. Só o output do formatter é commitado.
+- Sem mudanças em `.prettierrc`, `.prettierignore`, `eslint.config.js` ou expectativas de teste.
+- Se um teste quebrar de verdade por causa de snapshot/string tocado pelo formatter, paro e reporto — não "conserto" o teste.
+- Se o lint reportar violações não-formatação (ex.: `react-hooks/*`, `no-restricted-imports`), paro e reporto; estão fora do escopo desse pass.
 
-1. `src/features/public-booking/lib/locale.ts` (new)
-   - Export `PUBLIC_BOOKING_LOCALE = "en-US"` as the single source of truth for public booking display formatting.
+### Entregável
 
-2. `src/features/public-booking/components/PublicBookingPage.tsx`
-   - Import `PUBLIC_BOOKING_LOCALE`.
-   - Replace `new Intl.DateTimeFormat(undefined, …)` in three places, preserving the existing `timeZone` option:
-     - `formatSlotTime` — slot pills / success time. Yields "6:00 PM".
-     - `weekdayLong`.
-     - Success screen `dateLabel` — keeps `{ weekday: "short", month: "short", day: "numeric" }` → "Thu, Jul 2".
-   - `format(date, "PPP")` from date-fns already renders in English (no `locale` passed); untouched.
-
-## Non-goals / left untouched
-
-Short Ref, "Call shop" gating on `publicPhone`, "Add to calendar", "Book another", `.ics` generation, address/maps, operator panel formatting, `dayStrip.ts`.
-
-## Verification
-
-- `bun run test` stays green (existing `public-booking-ics` / `public-booking` tests do not depend on locale output).
-- Manual: `/book/demo-barber` with `navigator.language = "pt-BR"` → English day strip, "6:00 PM" pills, "Thu, Jul 2" on success.
-- Tenant timezone still respected; booking still creates and appears in operator panel.
+Lista dos arquivos reescritos pelo formatter e o resultado final de `lint` e `test`.

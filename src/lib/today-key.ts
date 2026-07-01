@@ -51,4 +51,3 @@ export function useTodayKey(timezone?: string): string | null {
   }, [timezone]);
   return key;
 }
-

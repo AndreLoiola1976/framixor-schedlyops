@@ -97,10 +97,7 @@ export function PublicBookingPage({
   const professionalsQuery = usePublicProfessionals(tenantSlug, tenantReady);
 
   const services = useMemo(() => servicesQuery.data ?? [], [servicesQuery.data]);
-  const professionals = useMemo(
-    () => professionalsQuery.data ?? [],
-    [professionalsQuery.data],
-  );
+  const professionals = useMemo(() => professionalsQuery.data ?? [], [professionalsQuery.data]);
 
   const [serviceId, setServiceId] = useState("");
   const [professionalId, setProfessionalId] = useState<string>(ANY_PRO);
@@ -165,7 +162,6 @@ export function PublicBookingPage({
 
   const createBooking = useCreateBooking();
 
-
   const canSubmit =
     !!serviceId &&
     !!dateKey &&
@@ -219,9 +215,6 @@ export function PublicBookingPage({
     }
   }
 
-
-
-
   function resetForm() {
     setServiceId("");
     setProfessionalId(ANY_PRO);
@@ -255,8 +248,8 @@ export function PublicBookingPage({
                 Booking page not found
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                We couldn't find a workspace at this link. Double-check the URL with the
-                business that shared it.
+                We couldn't find a workspace at this link. Double-check the URL with the business
+                that shared it.
               </p>
             </div>
           </CenteredMessage>
@@ -298,7 +291,6 @@ export function PublicBookingPage({
             professionals={professionals}
             onReset={resetForm}
           />
-
         ) : (
           <form onSubmit={handleSubmit} className="flex h-full flex-col">
             {/*
@@ -361,9 +353,7 @@ export function PublicBookingPage({
                 disabled={!canSubmit}
                 className="w-full bg-foreground text-background hover:bg-foreground/90"
               >
-                {createBooking.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {createBooking.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {ctaLabel}
               </Button>
             </div>
@@ -577,13 +567,7 @@ function ServiceList({
   );
 }
 
-function MetaStrip({
-  proName,
-  tagline,
-}: {
-  proName: string | null;
-  tagline: string | null;
-}) {
+function MetaStrip({ proName, tagline }: { proName: string | null; tagline: string | null }) {
   const left = proName ? `WITH ${proName}` : "WITH ANY PROFESSIONAL";
   return (
     <div className="mt-5 flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
@@ -619,18 +603,11 @@ function ProfessionalPills({
   }
   return (
     <div className="mt-5 flex flex-wrap gap-2 lg:mt-0">
-      <PillButton
-        active={value === ANY_PRO}
-        onClick={() => onChange(ANY_PRO)}
-      >
+      <PillButton active={value === ANY_PRO} onClick={() => onChange(ANY_PRO)}>
         Any
       </PillButton>
       {professionals.map((p) => (
-        <PillButton
-          key={p.id}
-          active={value === p.id}
-          onClick={() => onChange(p.id)}
-        >
+        <PillButton key={p.id} active={value === p.id} onClick={() => onChange(p.id)}>
           {p.name}
         </PillButton>
       ))}
@@ -651,12 +628,7 @@ function DayStrip({
     return <div className="mt-4 h-[72px]" aria-hidden="true" />;
   }
   return (
-    <div
-      className={cn(
-        "-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1",
-        HIDE_SCROLLBAR,
-      )}
-    >
+    <div className={cn("-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1", HIDE_SCROLLBAR)}>
       {cells.map((c) => {
         const selected = value === c.key;
         return (
@@ -797,7 +769,10 @@ function FormFields({
   return (
     <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="pb-name" className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <Label
+          htmlFor="pb-name"
+          className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground"
+        >
           Your name
         </Label>
         <Input
@@ -810,7 +785,10 @@ function FormFields({
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="pb-phone" className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+        <Label
+          htmlFor="pb-phone"
+          className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground"
+        >
           Phone
         </Label>
         <Input
@@ -916,8 +894,7 @@ function SuccessView({
             {result.duplicate ? "Already booked" : "You're booked!"}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Your appointment has been saved. Contact the shop directly if you need to
-            make changes.
+            Your appointment has been saved. Contact the shop directly if you need to make changes.
           </p>
 
           <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4">
@@ -926,15 +903,10 @@ function SuccessView({
             </p>
             <dl className="mt-3 space-y-2 text-sm">
               <SummaryRow label="Service" value={service?.name ?? "—"} />
-              <SummaryRow
-                label="With"
-                value={professional?.name ?? "Any available professional"}
-              />
+              <SummaryRow label="With" value={professional?.name ?? "Any available professional"} />
               <SummaryRow label="Date" value={dateLabel} />
               <SummaryRow label="Time" value={timeLabel} />
-              {durationMin > 0 && (
-                <SummaryRow label="Duration" value={`${durationMin} min`} />
-              )}
+              {durationMin > 0 && <SummaryRow label="Duration" value={`${durationMin} min`} />}
               <SummaryRow label="Shop" value={tenant.displayName} />
               {address && <SummaryRow label="Address" value={address} />}
             </dl>
@@ -958,12 +930,7 @@ function SuccessView({
               Add to calendar
             </Button>
             {mapsUrl && (
-              <Button
-                asChild
-                type="button"
-                variant="outline"
-                className="w-full sm:flex-1"
-              >
+              <Button asChild type="button" variant="outline" className="w-full sm:flex-1">
                 <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
                   Get directions
                 </a>
@@ -979,12 +946,7 @@ function SuccessView({
               <a href={telHref}>Call shop</a>
             </Button>
           )}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onReset}
-            className="w-full"
-          >
+          <Button type="button" variant="outline" onClick={onReset} className="w-full">
             Book another
           </Button>
         </div>
@@ -996,14 +958,11 @@ function SuccessView({
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <dt className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="text-right text-sm font-medium text-foreground">{value}</dd>
     </div>
   );
 }
-
 
 function PillButton({
   active,

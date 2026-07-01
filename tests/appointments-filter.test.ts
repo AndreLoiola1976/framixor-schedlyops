@@ -22,12 +22,56 @@ function appt(over: Partial<Appointment>): Appointment {
 }
 
 const services: Record<string, Service> = {
-  s1: { id: "s1", tenantId: "t", name: "Classic Haircut", description: "", category: "", durationMinutes: 30, priceCents: 2500, active: true, professionalIds: [] },
-  s2: { id: "s2", tenantId: "t", name: "Beard Trim", description: "", category: "", durationMinutes: 15, priceCents: 1500, active: true, professionalIds: [] },
+  s1: {
+    id: "s1",
+    tenantId: "t",
+    name: "Classic Haircut",
+    description: "",
+    category: "",
+    durationMinutes: 30,
+    priceCents: 2500,
+    active: true,
+    professionalIds: [],
+  },
+  s2: {
+    id: "s2",
+    tenantId: "t",
+    name: "Beard Trim",
+    description: "",
+    category: "",
+    durationMinutes: 15,
+    priceCents: 1500,
+    active: true,
+    professionalIds: [],
+  },
 };
 const pros: Record<string, Professional> = {
-  p1: { id: "p1", tenantId: "t", name: "Pat", role: "", email: "", phone: "", initials: "PA", specialties: [], workingDays: "", workingHours: "", active: true },
-  p2: { id: "p2", tenantId: "t", name: "Sam", role: "", email: "", phone: "", initials: "SA", specialties: [], workingDays: "", workingHours: "", active: true },
+  p1: {
+    id: "p1",
+    tenantId: "t",
+    name: "Pat",
+    role: "",
+    email: "",
+    phone: "",
+    initials: "PA",
+    specialties: [],
+    workingDays: "",
+    workingHours: "",
+    active: true,
+  },
+  p2: {
+    id: "p2",
+    tenantId: "t",
+    name: "Sam",
+    role: "",
+    email: "",
+    phone: "",
+    initials: "SA",
+    specialties: [],
+    workingDays: "",
+    workingHours: "",
+    active: true,
+  },
 };
 
 const baseInput = {
@@ -120,10 +164,7 @@ describe("filterAppointments", () => {
   });
 
   it("professional filter combines with quick filter", () => {
-    const all = [
-      appt({ id: "1", professionalId: "p1" }),
-      appt({ id: "2", professionalId: "p2" }),
-    ];
+    const all = [appt({ id: "1", professionalId: "p1" }), appt({ id: "2", professionalId: "p2" })];
     const out = filterAppointments(all, { ...baseInput, quick: "today", professionalId: "p2" });
     expect(out.map((a) => a.id)).toEqual(["2"]);
   });
