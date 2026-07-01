@@ -17,6 +17,7 @@ import { usePublicProfessionals, usePublicServices } from "../hooks/usePublicCat
 import { resolveProfessionalForSlot, usePublicSlots } from "../hooks/usePublicSlots";
 import { validatePreselection } from "../lib/validatePreselection";
 import { buildDayStrip, type DayCell } from "../lib/dayStrip";
+import { PUBLIC_BOOKING_LOCALE } from "../lib/locale";
 import type { PublicService } from "../api/publicServices";
 import type { PublicProfessional } from "../api/publicProfessionals";
 import type { PublicTenantProfile } from "../api/publicTenant";
@@ -36,7 +37,7 @@ function toDateKey(d: Date): string {
 
 function formatSlotTime(iso: string, timezone: string | null | undefined): string {
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(PUBLIC_BOOKING_LOCALE, {
       hour: "numeric",
       minute: "2-digit",
       timeZone: timezone || undefined,
@@ -68,7 +69,7 @@ function deriveInitials(name: string): string {
 function weekdayLong(iso: string | undefined, tz: string | null | undefined): string {
   if (!iso) return "";
   try {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(PUBLIC_BOOKING_LOCALE, {
       weekday: "short",
       timeZone: tz || undefined,
     }).format(new Date(iso));
@@ -856,7 +857,7 @@ function SuccessView({
 
   const dateLabel = (() => {
     try {
-      return new Intl.DateTimeFormat(undefined, {
+      return new Intl.DateTimeFormat(PUBLIC_BOOKING_LOCALE, {
         weekday: "short",
         month: "short",
         day: "numeric",
