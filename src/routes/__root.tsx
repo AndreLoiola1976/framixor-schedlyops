@@ -12,6 +12,7 @@ import { useState } from "react";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { TenantMismatchBanner } from "@/components/common/TenantMismatchBanner";
 import { DevDiagnostics } from "@/components/common/DevDiagnostics";
+import { DemoTenantBadge } from "@/components/common/DemoTenantBadge";
 
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -171,6 +172,7 @@ function AppShell() {
         <AppSidebar />
         <SidebarInset>
           <TopBar />
+          <DemoTenantBadge />
           <TenantMismatchBanner />
           <main className="flex-1 bg-background">
             <Outlet />

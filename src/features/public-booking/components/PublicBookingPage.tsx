@@ -852,9 +852,8 @@ function SuccessView({
             {result.duplicate ? "Already booked" : "You're booked!"}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {result.duplicate
-              ? "This booking was already submitted. Use the manage link below if you need to make changes."
-              : "We've saved your appointment. Save the manage link below to make changes later."}
+            Your appointment has been saved. Contact the shop directly if you need to
+            make changes.
           </p>
           <div className="mt-5 rounded-xl border border-border bg-muted/40 p-3">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
@@ -864,30 +863,6 @@ function SuccessView({
               {result.bookingId || "—"}
             </p>
           </div>
-          {manageUrl && (
-            <div className="mt-3 rounded-xl border border-border bg-muted/40 p-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                Manage link
-              </p>
-              <div className="mt-1 flex items-start gap-2">
-                <code className="flex-1 break-all rounded bg-background/70 p-1.5 text-xs text-foreground">
-                  {manageUrl}
-                </code>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={onCopy}
-                  className="shrink-0"
-                >
-                  <Copy className="mr-1 h-3 w-3" /> Copy
-                </Button>
-              </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                This link is shown only once — save it now.
-              </p>
-            </div>
-          )}
         </div>
       </div>
       <div className="border-t border-border bg-card px-5 py-4 sm:px-7 lg:px-8">
