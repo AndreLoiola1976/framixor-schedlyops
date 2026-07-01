@@ -217,15 +217,8 @@ export function PublicBookingPage({
     }
   }
 
-  async function copyManageLink() {
-    if (!manageUrl) return;
-    try {
-      await navigator.clipboard.writeText(manageUrl);
-      toast.success("Link copied.");
-    } catch {
-      toast.error("Couldn't copy link.");
-    }
-  }
+
+
 
   function resetForm() {
     setServiceId("");
