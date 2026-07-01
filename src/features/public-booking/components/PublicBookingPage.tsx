@@ -110,6 +110,11 @@ export function PublicBookingPage({
     bookingId: string;
     manageToken: string | null;
     duplicate: boolean;
+    snapshot: {
+      serviceId: string;
+      resolvedProfessionalId: string | null;
+      startsAt: string;
+    };
   } | null>(null);
   const [preselectionApplied, setPreselectionApplied] = useState(false);
 
@@ -158,11 +163,6 @@ export function PublicBookingPage({
 
   const createBooking = useCreateBooking();
 
-  const manageUrl = useMemo(() => {
-    if (!result?.manageToken) return null;
-    if (typeof window === "undefined") return `/b/${result.manageToken}`;
-    return `${window.location.origin}/b/${result.manageToken}`;
-  }, [result]);
 
   const canSubmit =
     !!serviceId &&
@@ -194,7 +194,14 @@ export function PublicBookingPage({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
       });
-      setResult(res);
+      setResult({
+        ...res,
+        snapshot: {
+          serviceId,
+          resolvedProfessionalId: resolvedPro,
+          startsAt: slot,
+        },
+      });
       if (res.duplicate) {
         toast.success("This booking was already submitted.");
       } else {
@@ -210,15 +217,8 @@ export function PublicBookingPage({
     }
   }
 
-  async function copyManageLink() {
-    if (!manageUrl) return;
-    try {
-      await navigator.clipboard.writeText(manageUrl);
-      toast.success("Link copied.");
-    } catch {
-      toast.error("Couldn't copy link.");
-    }
-  }
+
+
 
   function resetForm() {
     setServiceId("");
@@ -292,10 +292,11 @@ export function PublicBookingPage({
           <SuccessView
             tenant={tenant}
             result={result}
-            manageUrl={manageUrl}
-            onCopy={copyManageLink}
+            services={services}
+            professionals={professionals}
             onReset={resetForm}
           />
+
         ) : (
           <form onSubmit={handleSubmit} className="flex h-full flex-col">
             {/*
@@ -827,16 +828,55 @@ function FormFields({
 function SuccessView({
   tenant,
   result,
-  manageUrl,
-  onCopy,
+  services,
+  professionals,
   onReset,
 }: {
   tenant: PublicTenantProfile;
-  result: { bookingId: string; manageToken: string | null; duplicate: boolean };
-  manageUrl: string | null;
-  onCopy: () => void;
+  result: {
+    bookingId: string;
+    manageToken: string | null;
+    duplicate: boolean;
+    snapshot: {
+      serviceId: string;
+      resolvedProfessionalId: string | null;
+      startsAt: string;
+    };
+  };
+  services: PublicService[];
+  professionals: PublicProfessional[];
   onReset: () => void;
 }) {
+  const { snapshot } = result;
+  const service = services.find((s) => s.id === snapshot.serviceId) ?? null;
+  const professional = snapshot.resolvedProfessionalId
+    ? (professionals.find((p) => p.id === snapshot.resolvedProfessionalId) ?? null)
+    : null;
+
+  const dateLabel = (() => {
+    try {
+      return new Intl.DateTimeFormat(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        timeZone: tenant.timezone || undefined,
+      }).format(new Date(snapshot.startsAt));
+    } catch {
+      return snapshot.startsAt;
+    }
+  })();
+  const timeLabel = formatSlotTime(snapshot.startsAt, tenant.timezone);
+  const durationMin = service?.durationMinutes ?? 0;
+
+  // Short reference: first 6 chars of UUID, uppercased. Never expose the full id.
+  const shortRef = result.bookingId
+    ? result.bookingId.replace(/-/g, "").slice(0, 6).toUpperCase()
+    : null;
+
+  // Only render tel: link when we have a phone that at least contains a digit.
+  const phone = tenant.publicPhone?.trim() ?? "";
+  const telHref = /\d/.test(phone) ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-7 lg:px-8">
@@ -855,18 +895,43 @@ function SuccessView({
             Your appointment has been saved. Contact the shop directly if you need to
             make changes.
           </p>
-          <div className="mt-5 rounded-xl border border-border bg-muted/40 p-3">
+
+          <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4">
             <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Booking ID
+              Appointment details
             </p>
-            <p className="mt-1 break-all font-mono text-xs text-foreground">
-              {result.bookingId || "—"}
-            </p>
+            <dl className="mt-3 space-y-2 text-sm">
+              <SummaryRow label="Service" value={service?.name ?? "—"} />
+              <SummaryRow
+                label="With"
+                value={professional?.name ?? "Any available professional"}
+              />
+              <SummaryRow label="Date" value={dateLabel} />
+              <SummaryRow label="Time" value={timeLabel} />
+              {durationMin > 0 && (
+                <SummaryRow label="Duration" value={`${durationMin} min`} />
+              )}
+              <SummaryRow label="Shop" value={tenant.displayName} />
+            </dl>
+            {shortRef && (
+              <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
+                Ref <span className="font-mono tracking-wider">{shortRef}</span>
+              </p>
+            )}
           </div>
         </div>
       </div>
       <div className="border-t border-border bg-card px-5 py-4 sm:px-7 lg:px-8">
-        <div className="mx-auto w-full max-w-lg">
+        <div className="mx-auto flex w-full max-w-lg flex-col gap-2">
+          {telHref && (
+            <Button
+              asChild
+              type="button"
+              className="w-full bg-foreground text-background hover:bg-foreground/90"
+            >
+              <a href={telHref}>Call shop</a>
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -880,6 +945,18 @@ function SuccessView({
     </div>
   );
 }
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="text-right text-sm font-medium text-foreground">{value}</dd>
+    </div>
+  );
+}
+
 
 function PillButton({
   active,
