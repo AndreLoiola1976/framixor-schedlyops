@@ -199,7 +199,14 @@ export function PublicBookingPage({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
       });
-      setResult(res);
+      setResult({
+        ...res,
+        snapshot: {
+          serviceId,
+          resolvedProfessionalId: resolvedPro,
+          startsAt: slot,
+        },
+      });
       if (res.duplicate) {
         toast.success("This booking was already submitted.");
       } else {
