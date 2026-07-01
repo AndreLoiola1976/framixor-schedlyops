@@ -5,17 +5,21 @@ import { useAppointments } from "@/hooks/useAppointments";
 import { useClientMap } from "@/hooks/useClients";
 import { useServiceMap } from "@/hooks/useServices";
 import { useProfessionalMap } from "@/hooks/useProfessionals";
+import { useTenant } from "@/hooks/useTenant";
 import { useT } from "@/i18n/useT";
 import { dayKey, formatTime } from "@/lib/format";
+import { useTodayKey } from "@/lib/today-key";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { CalendarCheck } from "lucide-react";
 
-const TODAY = "2026-05-28";
-
 export function UpcomingAppointments() {
   const t = useT();
-  const appts = useAppointments().filter((a) => dayKey(a.startISO) === TODAY);
+  const tenant = useTenant();
+  const todayKey = useTodayKey(tenant.timezone);
+
+  const all = useAppointments();
+  const appts = todayKey ? all.filter((a) => dayKey(a.startISO) === todayKey) : [];
   const clientMap = useClientMap();
   const serviceMap = useServiceMap();
   const proMap = useProfessionalMap();

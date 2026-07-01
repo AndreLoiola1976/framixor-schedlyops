@@ -1,0 +1,139 @@
+# SchedlyOps — TODO
+
+Tracked gaps after this pass. Order is rough; demo-blockers first.
+
+## Governance
+
+- [x] **Commit conventions**: fonte de verdade em
+      [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md). Todos os
+      commits (humanos e agentes) seguem Conventional Commits.
+
+
+## Frontend follow-ups
+
+### Public booking page (`/book/:tenantSlug`) — follow-ups to the just-shipped MVP
+- **Operator "Copy public booking link" UI** — surface in Settings or TopBar; include preselection helper for per-service / per-professional links.
+- **Tenant branding on the public page** — logo image, brand color, social meta tags (currently `robots: noindex`, neutral SchedlyOps chrome).
+- **i18n** — public page strings are currently hardcoded English; thread through `useT`.
+- **`AnyProfessional` UX above 50 pros** — today we disable fan-out with a message; consider server-side aggregation if any tenant hits the limit.
+- **SEO / OG** — public page is `noindex` for now; add per-tenant OG once branding is on.
+
+
+
+- **Set `VITE_PUBLIC_BOOKING_BASE_URL` before Founder Beta / customer sharing.**
+  Required: configure in Workspace Settings → Build Secrets to a verified public
+  production host (e.g. `https://schedlyops.com`, `https://app.schedlyops.com`,
+  `https://booking.schedlyops.com`, or a verified public Lovable/Vercel host).
+  Without it, `getPublicBookingBaseUrl()` falls back to `window.location.origin`,
+  which in preview/editor environments produces Lovable-gated URLs — verified:
+  the `lovableproject.com` GUID host prompts a Lovable login for logged-out
+  visitors, breaking shared links. Do not add a preview-host fallback in code
+  and do not share preview-copied links with real customers. Re-verify Settings
+  "Copy link", TopBar "Open", and Launch Kit Instagram/WhatsApp/Google Business
+  snippets after the secret is set. See `docs/P0_CLOSURE.md` → "Public booking
+  base URL policy".
+- **Logo upload** (out of scope this pass). Wire Supabase Storage bucket +
+  signed upload, write resulting URL through `p_logo_url`.
+- **IANA timezone combobox** for `TenantSettingsSection` (P0_CLOSURE tech-debt
+  item — free-text input today, typos break scheduling and now also break
+  "today's appointments" computation).
+- ~~**Mobile-responsive Appointments list**~~ — shipped: mobile renders
+  `AppointmentCard`, desktop keeps the 12-col `AppointmentRow`.
+- **Appointments date-range picker** — explicit start/end picker beyond the
+  quick filters (today/upcoming/completed/cancelled/no-show/all).
+- **Appointments bulk actions / CSV export** — deferred.
+- **Dashboard KPI deltas + revenue** still missing (all deltas are `0`,
+  revenue chart only renders in mock mode).
+- **Public email edit** in `BusinessProfileForm` — flip the field from
+  read-only to editable once `p_public_email` write semantics are confirmed.
+- **Currency edit surface** — decide whether currency belongs in profile or
+  settings, then expose it; today it's read-only in both screens.
+- **Diagnostics panel** under Settings — surface
+  `getLastTenantDiagnostic()` + last profile/settings RPC errors for support.
+
+## Clients follow-ups (deferred from this pass)
+
+- Smarter phone normalization (E.164 / country-code aware): today
+  `+1 555 111 2222` and `5551112222` are treated as different clients
+  because the digit strings differ. Plumb tenant `countryCode` through
+  `deriveClients` to collapse leading-1 vs not for US, etc.
+- Persisted customer entity (backend) — owns notes, tags, lifetime value,
+  GDPR delete, and lets clients exist before their first booking.
+- Per-client CSV export.
+- Click "favorite professional" / "favorite service" to filter
+  `/appointments`.
+- Delete unused `src/components/features/clients/ClientsTable.tsx` once
+  confirmed no consumer (currently no importers).
+
+## Done in the last pass
+
+- **Public booking wrapper switch**: `createPublicBooking` now calls the
+  `public-create-booking` Edge Function via
+  `supabase.functions.invoke(...)`. Per-attempt UUID v4 idempotency key is
+  minted in `useCreateBooking` (stable across retries, reset on success or
+  input change). Duplicate replay (`{booking_id, duplicate:true}` and
+  `{booking_id}` without `manage_token`) is surfaced as a safe state, not an
+  error. Wrapper error codes mapped: `invalid_input`, `tenant_not_found`,
+  `slot_taken` (→ `SlotTakenError`), `rate_limited`, `outside_hours`,
+  `slot_in_past`, `invalid_service`, `invalid_professional`. Operator
+  booking path untouched.
+- Dashboard daily command center (Supabase mode): today summary cards,
+  next appointment, today schedule with quick lifecycle actions, and
+  per-professional grouping. Shared `today-key` helper + tested
+  `dashboard-today` derivation.
+
+## Follow-ups for the public booking wrapper
+
+- Build the anonymous `/book/:slug` public widget on top of
+  `createPublicBooking` — currently no in-repo caller passes `tenantSlug`,
+  so the wrapper is exercised by tests only inside this app. The live
+  `demo-barber` storefront still lives in a separate Lovable app and must
+  be migrated to the wrapper on its own pass.
+- Surface the `duplicate` state in the future public widget UI
+  (i18n key `bookingDialog.create.duplicate` is already in EN/ES/pt-BR).
+
+## Done previously
+
+- Dashboard "Today's appointments" now uses real today (tenant-tz aware).
+- Settings exposes the public booking URL (Copy + Open) and a TopBar
+  shortcut.
+- Settings Working-hours card replaced with a per-professional explainer +
+  link to `/professionals`.
+- `/clients` v1: read-only client list + detail sheet derived from
+  bookings, with search, mobile layout, and EN/ES/pt-BR copy.
+
+## Dashboard follow-ups
+
+- Surface reschedule/edit on the dashboard once the dialogs are
+  factored out of `AppointmentRow` for reuse.
+- Real KPI deltas + revenue sparkline (still all `0` / mock-only).
+- Per-professional working-hours overlay (gaps / idle time today).
+
+## Backend follow-ups (not in scope here)
+
+- Professional public/social/contact fields (handle, IG/WhatsApp, bio).
+- Payments (Stripe / Mercado Pago).
+- WhatsApp notifications + opt-in.
+- Admin-master tenant CRUD completeness.
+- **Waitlist + walk-in queue (planned, deferred behind backend)** — see
+  `.lovable/plan.md` for the contract-first plan. Requires, in order:
+  (1) `bookings.source` column (`online|operator|walkin`, default `online`);
+  (2) `waitlist_status` enum + `waitlist_entries` table with RLS + grants;
+  (3) RPCs `operator_list_waitlist`, `operator_add_walkin`,
+  `operator_skip_waitlist_entry`, `operator_requeue_waitlist_entry`,
+  `operator_cancel_waitlist_entry`, `operator_reorder_waitlist`,
+  `operator_update_walkin`, `operator_seat_waitlist_entry` (atomic:
+  creates booking + transitions entry in one tx, with typed errors
+  `waitlist_entry_not_waiting`, `waitlist_seat_conflict`, etc.).
+  Backend must adapt table/column names to actual repo schema and reuse
+  the existing booking-creation constraint helpers. **No frontend route,
+  dashboard card, walk-in badge, or mock adapter implementation lands
+  until the RPCs are deployed and exercised against a real tenant.**
+
+
+## Explicit non-goals for the demo
+
+- Multi-tenant switcher in the operator UI.
+- Dashboard KPI surface beyond what already exists.
+- Theme/colour-token engine.
+- Any RLS/migration/schema change.

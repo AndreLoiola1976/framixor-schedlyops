@@ -1,0 +1,235 @@
+# AI Change Report
+
+## 2026-07-01 — Commit conventions + Success screen v2 (Showcase Polish)
+
+**Governance (docs only):**
+- Added `docs/COMMIT_CONVENTIONS.md` as the binding source of truth for
+  commit messages (Conventional Commits; humans + agents including Lovable).
+- Created `AGENTS.md` and cross-referenced the new doc.
+- Referenced the doc in `STATE.md` and `TODO.md`.
+
+**Public booking Success screen v2 (frontend-only, no backend contract change):**
+- `src/features/public-booking/lib/ics.ts` (new): pure helpers —
+  `escapeIcsText`, `toIcsUtc`, `buildIcs` (RFC 5545, CRLF, UTC `…Z`,
+  30-min duration fallback, omits empty LOCATION/DESCRIPTION),
+  `formatAddress`, `buildMapsUrl` (Google Maps `dir/?api=1&destination=...`),
+  and DOM-side `downloadIcs` (Blob → object URL → click → `revokeObjectURL`
+  on next tick).
+- `src/features/public-booking/api/publicTenant.ts`: extended
+  `PublicTenantProfile` with optional `addressLine1`, `addressLine2`,
+  `city`, `state`, `postalCode`; adapter reads them defensively from the
+  RPC row (all `null` if backend omits them).
+- `src/features/public-booking/components/PublicBookingPage.tsx`: `SuccessView`
+  now renders a **Location** row (only when address present), an
+  **Add to calendar** button (always available), a **Get directions** button
+  (only when address present), and keeps existing **Call shop** (only when
+  phone present) + **Book another**. Filename uses only the 6-char short
+  ref, e.g. `appointment-A1B2C3.ics`.
+- `tests/public-booking-ics.test.ts` (new): 10 unit tests covering escape,
+  UTC formatting, VCALENDAR shape, duration fallback, empty-field omission,
+  address joining, maps URL encoding.
+- `tests/public-booking.test.ts`: updated fixture to include the new
+  address fields (all null by default).
+
+No booking-creation, operator UI, email/SMS, or manage/cancel/reschedule
+code was touched. No new dependencies. `bun test` → 85 pass / 0 fail;
+`tsgo --noEmit` → clean.
+
+---
+
+## Pass: public unauthenticated booking page (`/book/:tenantSlug`)
+
+### Goal
+Host the public, unauthenticated booking page inside SchedlyOps so a salon
+can share `/book/<tenant-slug>` directly with customers. Optional
+preselection via `?service=` and `?professional=` UUID query params. No
+backend changes; no operator-adapter contamination.
+
+### Backend surface consumed (existing, unchanged)
+- `core.public_get_tenant_profile(p_slug)` — array, take `[0] ?? null`.
+- `scheduling.public_list_services(p_tenant_slug)`.
+- `scheduling.public_list_professionals(p_tenant_slug)`.
+- `scheduling.public_available_slots(p_tenant_slug, p_professional_id, p_service_id, p_date)` — already wrapped by `listAvailableSlots` in `src/lib/booking-public.ts`.
+- `public-create-booking` Edge Function — already wrapped by `createPublicBooking` and used by `useCreateBooking` when `tenantSlug` is provided.
+
+### New isolated public module — `src/features/public-booking/`
+- `api/rpc.ts` — `publicRpc(schema, fn, args)` schema-aware helper (`"core" | "scheduling"`). Throws `PublicRpcError`. Independent from `src/lib/data-source/supabase.ts::call` (which is operator-only and hardcoded to `.schema("scheduling")`).
+- `api/publicTenant.ts` — `getPublicTenantProfile(slug)` → `PublicTenantProfile | null`. Array-returning RPC: takes `rows[0] ?? null`.
+- `api/publicServices.ts` — `listPublicServices(slug)` → `PublicService[]`.
+- `api/publicProfessionals.ts` — `listPublicProfessionals(slug)` → `PublicProfessional[]`.
+- `hooks/usePublicTenant.ts`, `hooks/usePublicCatalog.ts` (services + professionals), `hooks/usePublicSlots.ts` — React Query wrappers, no session gate.
+- `hooks/usePublicSlots.ts` — single-professional path AND fan-out across professionals (≤50) when professional is `"any"`. Unions slot times, tracks `bySlot` map so the submit step can resolve the chosen professional. `resolveProfessionalForSlot(bySlot, slot, preferredId)` prefers the URL-preselected professional when ambiguous, otherwise first candidate.
+- `lib/validatePreselection.ts` — drops URL ids missing from the loaded lists. Does NOT check service↔professional compatibility (not exposed by the public RPCs; incompatible pairs naturally yield no slots).
+- `components/PublicBookingPage.tsx` — single-page form: service + professional pickers (with "Any professional"), date + slot, name + phone (both required, matching existing operator contract). Renders "Booking page not found" inline when the tenant profile lookup returns null/errors — no route `notFoundComponent` indirection.
+
+### Route — `src/routes/book.$tenantSlug.tsx`
+- Top-level, NOT under `_authenticated/`.
+- `validateSearch` accepts only well-formed UUIDs for `service` / `professional`; anything else is silently dropped.
+- Tenant slug path param validated with `^[a-z0-9-]{1,64}$`; bad shape falls through to the in-page not-found state.
+- `head()` sets a neutral SchedlyOps title and `robots: noindex`.
+
+### AuthGate & root layout
+- `src/components/auth/AuthGate.tsx`: explicit `/book/` pass-through. Logged-in users can also open `/book/...` (useful for previewing a shared link). Allowlist, never denylist.
+- `src/routes/__root.tsx` (`AppShell`): `/book/*` skips `SidebarProvider`/`TopBar` and renders the `<Outlet />` directly so the public page shows neutral chrome.
+
+### Reuse / no duplication
+- `useCreateBooking` — reused as-is. Already routes through `createPublicBooking` Edge Function when `tenantSlug` is set, manages idempotency keys, and maps `SlotTakenError` / `BookingWrapperError`.
+- `toUserMessage` reused for friendly error toasts.
+- Operator data layer (`src/lib/data-source/**`, `useTenant`, `useServices`, `useProfessionals`) is untouched.
+
+### Tests — `tests/public-booking.test.ts`
+- `publicRpc` happy path, schema selection, `PublicRpcError` on backend error.
+- `getPublicTenantProfile`: array `[0]` extraction; `[]` and `null` → `null`.
+- `listPublicServices` / `listPublicProfessionals` adapter behavior.
+- `validatePreselection`: keeps valid pair, drops unknown service, drops unknown professional, handles missing.
+- `resolveProfessionalForSlot`: empty map → null, prefers preferredId, falls back to first candidate.
+
+Total project tests: **66 passing**.
+
+### Verification
+- typecheck: clean.
+- lint: no errors/warnings on new files (pre-existing prettier issues in unrelated files remain).
+- vitest: 66/66.
+- build: clean.
+
+### Out of scope
+- Operator-side "copy public link" button.
+- SMS / email / manage-booking changes.
+- Public tenant logo upload / branding editor.
+- Backend contracts (none touched).
+
+---
+
+
+
+## Pass: public booking → `public-create-booking` Edge Function wrapper
+
+### Goal
+Replace the raw `scheduling.public_create_booking` RPC call with the
+`public-create-booking` Edge Function wrapper shipped by Backend Phase 1
+(input validation, rate limit, idempotent dedupe, mapped error codes).
+Operator booking, SMS/email, and backend contracts are untouched.
+
+### Live-flow note (handoff)
+The only in-repo call site is `createPublicBooking` in
+`src/lib/booking-public.ts`. No current operator UI passes `tenantSlug`, so
+the wrapper is preparatory for the in-app anonymous widget. **The deployed
+demo-barber public booking flow lives in a separate Lovable app and must be
+migrated to the same wrapper on its own pass** — this commit does not move
+it.
+
+### Frontend behavior
+- `createPublicBooking` now calls
+  `getSupabase().functions.invoke("public-create-booking", { body })` and
+  reads the standard `{ data, error }` response shape (does not rely on
+  thrown `FunctionsHttpError`).
+- Body: `{ tenant_slug, professional_id, service_id, starts_at,
+  customer_name, customer_phone, idempotency_key }`.
+- `useCreateBooking` mints one UUID v4 `idempotency_key` per submission
+  attempt, reuses it across retries with identical inputs, and resets it on
+  successful submit or when any input field changes.
+- Success returns `{ bookingId, manageToken, duplicate: false }`.
+- Duplicate replay handled safely: `{ booking_id, duplicate: true }` and
+  `{ booking_id }` without `manage_token` both produce
+  `{ duplicate: true, manageToken: null }` — never an error.
+- Errors mapped from the wrapper response body's `code`:
+  `slot_taken` → `SlotTakenError` (preserves existing UX); the other seven
+  (`invalid_input`, `tenant_not_found`, `rate_limited`, `outside_hours`,
+  `slot_in_past`, `invalid_service`, `invalid_professional`) throw a new
+  `BookingWrapperError` with the code attached, and friendly copy lives in
+  `scheduling-errors.ts` for `toUserMessage()`.
+- New i18n key `bookingDialog.create.duplicate` added in EN/ES/pt-BR for the
+  future public widget UI.
+
+### Files changed
+- `src/lib/booking-public.ts` — wrapper switch, `BookingWrapperError`,
+  `CreateBookingResult.duplicate`, `CreateBookingInput.idempotencyKey`.
+- `src/hooks/useCreateBooking.ts` — per-attempt idempotency key manager;
+  exports `_fingerprintForTests` / `_mintForTests` for unit tests.
+- `src/lib/scheduling-errors.ts` — added `tenant_not_found` and
+  `rate_limited` friendly copy.
+- `src/i18n/{en,es,pt-BR}.ts` — `bookingDialog.create.duplicate`.
+- `tests/booking-public-wrapper.test.ts` — 15 tests covering success,
+  explicit duplicate, missing-token replay, each mapped error code,
+  `slot_taken` → `SlotTakenError`, input guards, and idempotency-key
+  reuse/reset behavior.
+- `STATE.md`, `TODO.md`, `AI_CHANGE_REPORT.md`.
+
+### Verification
+- `bunx vitest run` — 8 files, 52 tests, all passing.
+- `bunx eslint` on changed files — clean (pre-existing prettier warnings in
+  unrelated files left as-is, matching prior passes).
+- Typecheck — passes (harness build runs it automatically).
+- Manual sanity: `CreateBookingDialog` does not pass `tenantSlug`, so
+  `useCreateBooking` still routes to `createOperatorBooking` →
+  `scheduling.operator_create_booking` RPC. Wrapper code path is unreachable
+  from operator UI.
+
+## Pass: real Settings loop — `operator_*_tenant_profile` wired
+
+### Goal
+Replace the read-only "mock" business profile with a real form backed by the
+confirmed `core.operator_(get|update)_tenant_profile` RPCs, and compose
+profile + settings into `useTenant()` so the rest of the app reflects the
+manager's edits without a hard reload. demo-barber (anon, public) already
+reads `core.public_get_tenant_profile(p_slug)`, so no work was required
+there.
+
+### Contract verification
+Before writing UI, the exact parameter names of
+`core.operator_update_tenant_profile` were confirmed via a PostgREST probe:
+sending the full candidate superset returned `42501 permission denied`
+(function matched, auth refused) instead of `PGRST202 function not found`.
+Accepted names used:
+
+```
+p_display_name, p_tagline, p_description,
+p_public_phone, p_public_email,
+p_website_url, p_logo_url,
+p_address_line1, p_address_line2, p_city, p_state, p_postal_code, p_country_code
+```
+
+No generic `p_address` field is sent. `tenants.name` is never written.
+
+### Files added
+- `src/lib/tenant-profile.ts` — get/update wrappers + parser (mirrors `tenant-settings.ts`).
+- `src/hooks/useTenantProfile.ts` — query + mutation hook; invalidates `qk.tenant` and the profile key on success.
+- `STATE.md`, `TODO.md`, `AI_CHANGE_REPORT.md` — new docs.
+
+### Files changed
+- `src/lib/data-source/supabase.ts` — `getTenant()` now composes
+  `operator_current_tenant + operator_get_tenant_profile +
+  operator_get_tenant_settings` in parallel (`Promise.allSettled`). Profile /
+  settings failures degrade to neutral fields and log
+  `[SCHEDLYOPS_TENANT]` diagnostics; they never throw. Hardcoded
+  `"UTC"/"USD"/"en-US"` removed from `adaptTenant`.
+- `src/types/tenant.ts` — added optional `displayName`, `tagline`,
+  `description`, `websiteUrl`, `logoUrl`, `countryCode`. Existing required
+  fields untouched (mock data source still satisfies the type).
+- `src/components/features/settings/BusinessProfileForm.tsx` — controlled
+  form with the editable fields above; `public_email` and `currency`
+  remain read-only with explanatory copy. Submits only changed keys.
+- `src/components/features/settings/BrandingSection.tsx` — added
+  `logo_url` text input + live preview (image with `onError` fallback to
+  the existing initials tile). No upload.
+- `docs/P0_CLOSURE.md` — appended a "Post-closure: tenant profile RPC wired"
+  note marking the prior tech-debt item resolved.
+- `.lovable/plan.md` — appended this pass entry.
+
+### Untouched
+Auth, env, supabase client, `tenant-settings.ts`, `TenantSettingsSection`,
+services / professionals / working hours / bookings code, public booking lib,
+mock data source. No migrations, RLS, payments, WhatsApp, KPIs, tenant
+switcher, professional social/contact, admin-master changes.
+
+### Acceptance
+- Manager edits supported public profile fields → Save → toast → values
+  persist on hard refresh.
+- Manager edits `logo_url` → preview updates → demo-barber reflects it via
+  `public_get_tenant_profile`.
+- Manager edits timezone/locale/country/policies → still saves via
+  `operator_update_tenant_settings`.
+- TopBar / BrandingSection / dialogs reflect `display_name` and `logo_url`
+  through `useTenant()` immediately after save (cache invalidated).
+- No "Saved (mock)" copy remains on wired fields.
+- No schema/RLS/security regression.

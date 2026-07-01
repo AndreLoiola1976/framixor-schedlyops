@@ -100,3 +100,41 @@ Validated in preview against Supabase DEV.
 No Supabase backend, schema, RLS, RPC, migration, auth, storage, seed, or
 edge-function changes were made in this closure pass. No service-role key
 was used. All changes are frontend-only and respect existing RLS.
+
+## Post-closure: tenant profile RPC wired
+
+The "Business profile RPCs" tech-debt item above is resolved. Backend exposes
+`core.operator_(get|update)_tenant_profile`; frontend now writes through it
+via `src/lib/tenant-profile.ts` + `src/hooks/useTenantProfile.ts`, and
+`BusinessProfileForm` is a controlled form again. `BrandingSection` gained a
+`logo_url` text input (no upload). `getTenant()` composes profile + settings
+into `TenantInfo` so `useTenant()` reflects edits without a reload. No
+schema/RLS/migration changes. See `AI_CHANGE_REPORT.md` for details and the
+confirmed RPC parameter list.
+
+## Public booking base URL policy
+
+`VITE_PUBLIC_BOOKING_BASE_URL` is **required** before Founder Beta or any
+customer sharing. `getPublicBookingBaseUrl()` in
+`src/lib/public-booking-url.ts` reads it and falls back to
+`window.location.origin`; that fallback is dev-only.
+
+- **Why required:** in Lovable preview/editor environments the fallback
+  produces Lovable-gated URLs. Verified manually — the editor sandbox host
+  `https://e3e34fa3-1676-4b49-8d9d-6287eeee4829.lovableproject.com/book/demo-barber`
+  showed a Lovable login wall in a logged-out Firefox session. Pasting such
+  a link into Instagram/WhatsApp/Google Business breaks every customer click.
+- **Temporary rule:** do not share booking links copied from preview/editor
+  environments with real customers.
+- **Production rule:** set `VITE_PUBLIC_BOOKING_BASE_URL` in Workspace
+  Settings → Build Secrets to a verified public production host. Candidates:
+  `https://schedlyops.com`, `https://app.schedlyops.com`,
+  `https://booking.schedlyops.com`, or a verified public Lovable/Vercel
+  production host. `https://schedlyops.lovable.app` is currently a known
+  public Lovable host.
+- **Do not** add a preview-host detection fallback, hardcode a public host
+  in code, or default `.env.example` to a preview/GUID host.
+- **Acceptance:** Settings "Copy link", TopBar "Open", and Launch Kit
+  Instagram / WhatsApp / Google Business snippets must all resolve via
+  `VITE_PUBLIC_BOOKING_BASE_URL` once production is chosen.
+

@@ -1,40 +1,22 @@
-## Final Frontend Cleanup Before Freeze
+## Correção format-only do CI
 
-### 1. Clean up `src/routes/__root.tsx` head metadata
-Remove these 5 duplicate/leftover meta entries (lines 96–100):
-- `name: "description"` containing "Schedule Harmony is a React/TypeScript application..."
-- `property: "og:description"` containing "Schedule Harmony is a React/TypeScript application..."
-- `name: "twitter:description"` containing "Schedule Harmony is a React/TypeScript application..."
-- `property: "og:image"` with Lovable preview image URL
-- `name: "twitter:image"` with Lovable preview image URL
+Rodar os autofixers do projeto para limpar os erros de Prettier/ESLint, depois verificar.
 
-Keep the SchedlyOps entries above them (title, description, og:title, og:description, og:type, twitter:card, twitter:title).
+### Passos
 
-### 2. Rename `package.json` `name`
-Change `"name": "tanstack_start_ts"` to `"name": "schedlyops"`.
+1. `bun run lint -- --fix` (ESLint com `eslint-plugin-prettier` reescreve os arquivos no formato correto).
+2. Se algum arquivo ainda reportar `prettier/prettier`, rodar `bunx prettier --write` apenas nesses arquivos.
+3. `bun run lint` — deve sair limpo.
+4. `bun run test` — deve continuar verde.
+5. `bun run typecheck` como sanity check.
 
-### 3. Verification
-Run typecheck, lint, check:secrets, test, and build to confirm all checks pass.
+### Guardrails
 
-### 4. Service price input fix
-`ServiceFormDialog` now treats the price field as a normal monetary input
-(`type="text"`, `inputMode="decimal"`) instead of raw cents. Comma decimals
-(e.g. `47,90`) are normalized to dot before parsing. Invalid/empty/negative
-values block submit with an inline error. The value is converted to cents with
-`Math.round(parsed * 100)` and sent through the existing `priceCents` mutation
-contract unchanged. `formatCurrency` no longer truncates fraction digits, so
-cents render correctly in service cards and dashboard KPIs. i18n label renamed
-from `priceCents` to `price` across EN/ES/pt-BR with a new `priceInvalid` key.
-No backend/schema/RPC changes.
+- Sem edições manuais. Só o output do formatter é commitado.
+- Sem mudanças em `.prettierrc`, `.prettierignore`, `eslint.config.js` ou expectativas de teste.
+- Se um teste quebrar de verdade por causa de snapshot/string tocado pelo formatter, paro e reporto — não "conserto" o teste.
+- Se o lint reportar violações não-formatação (ex.: `react-hooks/*`, `no-restricted-imports`), paro e reporto; estão fora do escopo desse pass.
 
-### 5. Service activation toggle fix
-`ServiceCard` only showed a **Disable** button for active services. Once a
-service was disabled, there was no way to reactivate it from the UI.
-- Added an **Enable** button (icon `Power`) that appears when `service.active`
-  is `false`, calling `useUpdateService()` with the full service payload plus
-  `isActive: true` to preserve all fields.
-- Action buttons are disabled while either mutation is pending.
-- Added `common.enable` to EN/ES/pt-BR dictionaries.
-- Backend unchanged: `operator_update_service` already accepts `p_is_active`.
+### Entregável
 
-No UI changes, no provider/route/component/config/test refactors.
+Lista dos arquivos reescritos pelo formatter e o resultado final de `lint` e `test`.
