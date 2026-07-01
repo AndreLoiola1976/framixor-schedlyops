@@ -172,6 +172,7 @@ function AppShell() {
         <AppSidebar />
         <SidebarInset>
           <TopBar />
+          <DemoTenantBadge />
           <TenantMismatchBanner />
           <main className="flex-1 bg-background">
             <Outlet />
