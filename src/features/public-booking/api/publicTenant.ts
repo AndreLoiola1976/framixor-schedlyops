@@ -62,6 +62,11 @@ function adapt(row: Row | null | undefined, slug: string): PublicTenantProfile |
     publicPhone: row.public_phone ?? null,
     timezone: row.timezone ?? null,
     countryCode: row.country_code ?? null,
+    addressLine1: row.address_line1 ?? null,
+    addressLine2: row.address_line2 ?? null,
+    city: row.city ?? null,
+    state: row.state ?? null,
+    postalCode: row.postal_code ?? null,
   };
 }
 
