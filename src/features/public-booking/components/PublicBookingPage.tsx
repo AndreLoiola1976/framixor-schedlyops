@@ -935,8 +935,8 @@ function SuccessView({
               {durationMin > 0 && (
                 <SummaryRow label="Duration" value={`${durationMin} min`} />
               )}
-              {address && <SummaryRow label="Location" value={address} />}
               <SummaryRow label="Shop" value={tenant.displayName} />
+              {address && <SummaryRow label="Address" value={address} />}
             </dl>
             {shortRef && (
               <p className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
