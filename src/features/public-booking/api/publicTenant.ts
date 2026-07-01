@@ -12,6 +12,11 @@ export interface PublicTenantProfile {
   publicPhone: string | null;
   timezone: string | null;
   countryCode: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
 }
 
 type Row = {
@@ -28,6 +33,11 @@ type Row = {
   public_phone?: string | null;
   timezone?: string | null;
   country_code?: string | null;
+  address_line1?: string | null;
+  address_line2?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postal_code?: string | null;
 };
 
 function adapt(row: Row | null | undefined, slug: string): PublicTenantProfile | null {
