@@ -364,7 +364,6 @@ export const es: Dictionary = {
         },
       },
     },
-
   },
   auth: {
     title: "SchedlyOps",

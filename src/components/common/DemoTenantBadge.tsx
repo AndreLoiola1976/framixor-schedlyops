@@ -16,9 +16,7 @@ export function DemoTenantBadge() {
       className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-1.5 text-xs text-muted-foreground"
     >
       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-      <span className="font-medium tracking-wide">
-        Demo tenant — training environment
-      </span>
+      <span className="font-medium tracking-wide">Demo tenant — training environment</span>
     </div>
   );
 }

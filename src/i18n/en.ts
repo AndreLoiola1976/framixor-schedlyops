@@ -361,7 +361,6 @@ export const en = {
         },
       },
     },
-
   },
   auth: {
     title: "SchedlyOps",

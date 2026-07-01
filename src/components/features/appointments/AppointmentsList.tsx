@@ -56,7 +56,10 @@ export function AppointmentsList() {
       map.set(k, arr);
     }
     return Array.from(map.entries())
-      .map(([day, items]) => [day, items.slice().sort((x, y) => x.startISO.localeCompare(y.startISO))] as const)
+      .map(
+        ([day, items]) =>
+          [day, items.slice().sort((x, y) => x.startISO.localeCompare(y.startISO))] as const,
+      )
       .sort(([a], [b]) => a.localeCompare(b));
   }, [filtered, tenant.timezone]);
 
@@ -93,9 +96,7 @@ export function AppointmentsList() {
                 <h2 className="text-sm font-semibold text-foreground">
                   {formatLongDate(day + "T00:00:00")}
                 </h2>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  · {items.length}
-                </span>
+                <span className="text-xs text-muted-foreground tabular-nums">· {items.length}</span>
               </div>
               <Card className="overflow-hidden p-0">
                 {/* Desktop column header */}

@@ -70,10 +70,13 @@ describe("launchKit i18n parity", () => {
   ];
 
   function get(obj: unknown, path: string): unknown {
-    return path.split(".").reduce<unknown>(
-      (acc, k) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[k] : undefined),
-      obj,
-    );
+    return path
+      .split(".")
+      .reduce<unknown>(
+        (acc, k) =>
+          acc && typeof acc === "object" ? (acc as Record<string, unknown>)[k] : undefined,
+        obj,
+      );
   }
 
   for (const dict of [

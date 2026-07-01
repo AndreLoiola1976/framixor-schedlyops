@@ -34,10 +34,7 @@ export function ByProfessionalToday({ buckets, serviceMap, professionalMap }: Pr
                     const isBlock = a.type === "block";
                     const svc = serviceMap[a.serviceId];
                     return (
-                      <li
-                        key={a.id}
-                        className="flex items-center justify-between gap-2 text-xs"
-                      >
+                      <li key={a.id} className="flex items-center justify-between gap-2 text-xs">
                         <span className="font-medium tabular-nums text-foreground">
                           {formatTime(a.startISO)}
                         </span>

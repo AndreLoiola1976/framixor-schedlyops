@@ -24,7 +24,6 @@ export function UpcomingAppointments() {
   const serviceMap = useServiceMap();
   const proMap = useProfessionalMap();
 
-
   return (
     <SectionCard
       title={t.dashboard.upcomingTitle}

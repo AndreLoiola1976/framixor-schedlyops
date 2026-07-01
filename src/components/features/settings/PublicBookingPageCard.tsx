@@ -49,8 +49,7 @@ export function PublicBookingPageCard() {
   const hasSlug = !!tenant.slug;
   const lk = t.settings.publicPage.launchKit;
 
-  const displayName =
-    profileQuery.data?.display_name?.trim() || tenant.name || "";
+  const displayName = profileQuery.data?.display_name?.trim() || tenant.name || "";
 
   const snippets = useMemo(
     () =>
@@ -63,7 +62,13 @@ export function PublicBookingPageCard() {
           googleBusiness: lk.share.googleBusiness.template,
         },
       }),
-    [displayName, url, lk.share.instagram.template, lk.share.whatsapp.template, lk.share.googleBusiness.template],
+    [
+      displayName,
+      url,
+      lk.share.instagram.template,
+      lk.share.whatsapp.template,
+      lk.share.googleBusiness.template,
+    ],
   );
 
   const readiness = useMemo(
@@ -130,14 +135,11 @@ export function PublicBookingPageCard() {
             </div>
             {isPreviewOrigin && (
               <div className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs leading-relaxed text-destructive">
-                <p className="font-medium">
-                  This link points to a preview environment.
-                </p>
+                <p className="font-medium">This link points to a preview environment.</p>
                 <p className="mt-0.5 text-destructive/90">
-                  Preview links may require a Lovable login and should not be shared
-                  with real customers. Set{" "}
-                  <code className="font-mono">VITE_PUBLIC_BOOKING_BASE_URL</code> to a
-                  public production host before sharing.
+                  Preview links may require a Lovable login and should not be shared with real
+                  customers. Set <code className="font-mono">VITE_PUBLIC_BOOKING_BASE_URL</code> to
+                  a public production host before sharing.
                 </p>
               </div>
             )}
@@ -180,7 +182,10 @@ export function PublicBookingPageCard() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground">{row.label}</p>
-                    <p className="truncate text-xs text-muted-foreground" title={snippets[row.channel]}>
+                    <p
+                      className="truncate text-xs text-muted-foreground"
+                      title={snippets[row.channel]}
+                    >
                       {snippets[row.channel]}
                     </p>
                   </div>
