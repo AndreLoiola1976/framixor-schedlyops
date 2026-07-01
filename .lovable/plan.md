@@ -1,50 +1,31 @@
-## Final Frontend Cleanup Before Freeze
 
-### 1. Clean up `src/routes/__root.tsx` head metadata
-Remove these 5 duplicate/leftover meta entries (lines 96–100):
-- `name: "description"` containing "Schedule Harmony is a React/TypeScript application..."
-- `property: "og:description"` containing "Schedule Harmony is a React/TypeScript application..."
-- `name: "twitter:description"` containing "Schedule Harmony is a React/TypeScript application..."
-- `property: "og:image"` with Lovable preview image URL
-- `name: "twitter:image"` with Lovable preview image URL
+## Goal
 
-Keep the SchedlyOps entries above them (title, description, og:title, og:description, og:type, twitter:card, twitter:title).
+Public booking (`/book/:tenantSlug`) UI copy is English, but weekday/month labels currently follow the browser locale (e.g. "qui., 2 de jul." on pt-BR). Lock all visible date/time formatting in the public booking flow to `en-US` while preserving tenant timezone behavior.
 
-### 2. Rename `package.json` `name`
-Change `"name": "tanstack_start_ts"` to `"name": "schedlyops"`.
+## Scope
 
-### 3. Verification
-Run typecheck, lint, check:secrets, test, and build to confirm all checks pass.
+Frontend / presentation only. No RPC, no backend, no new features, no UI redesign, no manage/cancel links, no auth. `src/features/public-booking/lib/dayStrip.ts` already hardcodes `en-US`.
 
-### 4. Service price input fix
-`ServiceFormDialog` now treats the price field as a normal monetary input
-(`type="text"`, `inputMode="decimal"`) instead of raw cents. Comma decimals
-(e.g. `47,90`) are normalized to dot before parsing. Invalid/empty/negative
-values block submit with an inline error. The value is converted to cents with
-`Math.round(parsed * 100)` and sent through the existing `priceCents` mutation
-contract unchanged. `formatCurrency` no longer truncates fraction digits, so
-cents render correctly in service cards and dashboard KPIs. i18n label renamed
-from `priceCents` to `price` across EN/ES/pt-BR with a new `priceInvalid` key.
-No backend/schema/RPC changes.
+## Changes
 
-### 5. Service activation toggle fix
-`ServiceCard` only showed a **Disable** button for active services. Once a
-service was disabled, there was no way to reactivate it from the UI.
-- Added an **Enable** button (icon `Power`) that appears when `service.active`
-  is `false`, calling `useUpdateService()` with the full service payload plus
-  `isActive: true` to preserve all fields.
-- Action buttons are disabled while either mutation is pending.
-- Added `common.enable` to EN/ES/pt-BR dictionaries.
-- Backend unchanged: `operator_update_service` already accepts `p_is_active`.
+1. `src/features/public-booking/lib/locale.ts` (new)
+   - Export `PUBLIC_BOOKING_LOCALE = "en-US"` as the single source of truth for public booking display formatting.
 
-No UI changes, no provider/route/component/config/test refactors.
-### 6. Real Settings loop (tenant profile)
-`BusinessProfileForm` is editable again, backed by the confirmed
-`core.operator_(get|update)_tenant_profile` RPCs. `BrandingSection` gained a
-`logo_url` text input with live preview (no upload). `getTenant()` composes
-`operator_current_tenant + operator_get_tenant_profile +
-operator_get_tenant_settings`, so `useTenant()` consumers (TopBar,
-booking dialogs, branding) reflect saved edits without a hard reload.
-`public_email` and `currency` remain read-only this pass; `tenants.name` is
-not written — `display_name` is the public branding string. No schema, RLS,
-or migration changes.
+2. `src/features/public-booking/components/PublicBookingPage.tsx`
+   - Import `PUBLIC_BOOKING_LOCALE`.
+   - Replace `new Intl.DateTimeFormat(undefined, …)` in three places, preserving the existing `timeZone` option:
+     - `formatSlotTime` — slot pills / success time. Yields "6:00 PM".
+     - `weekdayLong`.
+     - Success screen `dateLabel` — keeps `{ weekday: "short", month: "short", day: "numeric" }` → "Thu, Jul 2".
+   - `format(date, "PPP")` from date-fns already renders in English (no `locale` passed); untouched.
+
+## Non-goals / left untouched
+
+Short Ref, "Call shop" gating on `publicPhone`, "Add to calendar", "Book another", `.ics` generation, address/maps, operator panel formatting, `dayStrip.ts`.
+
+## Verification
+
+- `bun run test` stays green (existing `public-booking-ics` / `public-booking` tests do not depend on locale output).
+- Manual: `/book/demo-barber` with `navigator.language = "pt-BR"` → English day strip, "6:00 PM" pills, "Thu, Jul 2" on success.
+- Tenant timezone still respected; booking still creates and appears in operator panel.
