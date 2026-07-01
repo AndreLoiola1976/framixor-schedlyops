@@ -128,6 +128,19 @@ export function PublicBookingPageCard() {
                 {url || `…/book/${tenant.slug}`}
               </code>
             </div>
+            {isPreviewOrigin && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs leading-relaxed text-destructive">
+                <p className="font-medium">
+                  This link points to a preview environment.
+                </p>
+                <p className="mt-0.5 text-destructive/90">
+                  Preview links may require a Lovable login and should not be shared
+                  with real customers. Set{" "}
+                  <code className="font-mono">VITE_PUBLIC_BOOKING_BASE_URL</code> to a
+                  public production host before sharing.
+                </p>
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
