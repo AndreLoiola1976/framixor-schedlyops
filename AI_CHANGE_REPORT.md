@@ -1,5 +1,42 @@
 # AI Change Report
 
+## 2026-07-01 — Commit conventions + Success screen v2 (Showcase Polish)
+
+**Governance (docs only):**
+- Added `docs/COMMIT_CONVENTIONS.md` as the binding source of truth for
+  commit messages (Conventional Commits; humans + agents including Lovable).
+- Created `AGENTS.md` and cross-referenced the new doc.
+- Referenced the doc in `STATE.md` and `TODO.md`.
+
+**Public booking Success screen v2 (frontend-only, no backend contract change):**
+- `src/features/public-booking/lib/ics.ts` (new): pure helpers —
+  `escapeIcsText`, `toIcsUtc`, `buildIcs` (RFC 5545, CRLF, UTC `…Z`,
+  30-min duration fallback, omits empty LOCATION/DESCRIPTION),
+  `formatAddress`, `buildMapsUrl` (Google Maps `dir/?api=1&destination=...`),
+  and DOM-side `downloadIcs` (Blob → object URL → click → `revokeObjectURL`
+  on next tick).
+- `src/features/public-booking/api/publicTenant.ts`: extended
+  `PublicTenantProfile` with optional `addressLine1`, `addressLine2`,
+  `city`, `state`, `postalCode`; adapter reads them defensively from the
+  RPC row (all `null` if backend omits them).
+- `src/features/public-booking/components/PublicBookingPage.tsx`: `SuccessView`
+  now renders a **Location** row (only when address present), an
+  **Add to calendar** button (always available), a **Get directions** button
+  (only when address present), and keeps existing **Call shop** (only when
+  phone present) + **Book another**. Filename uses only the 6-char short
+  ref, e.g. `appointment-A1B2C3.ics`.
+- `tests/public-booking-ics.test.ts` (new): 10 unit tests covering escape,
+  UTC formatting, VCALENDAR shape, duration fallback, empty-field omission,
+  address joining, maps URL encoding.
+- `tests/public-booking.test.ts`: updated fixture to include the new
+  address fields (all null by default).
+
+No booking-creation, operator UI, email/SMS, or manage/cancel/reschedule
+code was touched. No new dependencies. `bun test` → 85 pass / 0 fail;
+`tsgo --noEmit` → clean.
+
+---
+
 ## Pass: public unauthenticated booking page (`/book/:tenantSlug`)
 
 ### Goal
