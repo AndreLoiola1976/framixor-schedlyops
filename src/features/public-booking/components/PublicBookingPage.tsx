@@ -304,10 +304,11 @@ export function PublicBookingPage({
           <SuccessView
             tenant={tenant}
             result={result}
-            manageUrl={manageUrl}
-            onCopy={copyManageLink}
+            services={services}
+            professionals={professionals}
             onReset={resetForm}
           />
+
         ) : (
           <form onSubmit={handleSubmit} className="flex h-full flex-col">
             {/*
