@@ -16,10 +16,33 @@ import { getLastTenantDiagnostic } from "@/lib/data-source";
  * Floating diagnostic + mode switcher. Visible in dev and preview so a tester
  * can flip between mock and supabase without a rebuild.
  */
+/**
+ * Gating rule (strict):
+ * - SSR (no window)                          -> hidden
+ * - pathname starts with /book               -> hidden (even in dev, even with ?debug=1)
+ * - !import.meta.env.DEV (prod/Founder build)-> hidden
+ * - DEV AND (VITE_SHOW_DIAGNOSTICS==="true"
+ *            OR URL has ?debug=1)            -> visible
+ * - otherwise                                -> hidden
+ *
+ * Enable locally: set VITE_SHOW_DIAGNOSTICS=true in .env.local, or append
+ * ?debug=1 to any non-/book route while running `bun dev`.
+ */
+function shouldRenderDiagnostics(): boolean {
+  if (typeof window === "undefined") return false;
+  if (window.location.pathname.startsWith("/book")) return false;
+  if (!import.meta.env.DEV) return false;
+  if (import.meta.env.VITE_SHOW_DIAGNOSTICS === "true") return true;
+  if (new URLSearchParams(window.location.search).get("debug") === "1") return true;
+  return false;
+}
+
 export function DevDiagnostics() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const { loading, session } = useSession();
   const tenant = useTenantQuery();
+
+  if (!shouldRenderDiagnostics()) return null;
 
   const diag = IS_SUPABASE ? getLastTenantDiagnostic() : null;
   const sessionLabel = !IS_SUPABASE
