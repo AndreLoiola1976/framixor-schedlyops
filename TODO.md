@@ -2,6 +2,13 @@
 
 Tracked gaps after this pass. Order is rough; demo-blockers first.
 
+## Governance
+
+- [x] **Commit conventions**: fonte de verdade em
+      [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md). Todos os
+      commits (humanos e agentes) seguem Conventional Commits.
+
+
 ## Frontend follow-ups
 
 ### Public booking page (`/book/:tenantSlug`) — follow-ups to the just-shipped MVP

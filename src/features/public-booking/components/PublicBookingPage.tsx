@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { buildIcs, buildMapsUrl, downloadIcs, formatAddress } from "../lib/ics";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -877,6 +878,28 @@ function SuccessView({
   const phone = tenant.publicPhone?.trim() ?? "";
   const telHref = /\d/.test(phone) ? `tel:${phone.replace(/[^\d+]/g, "")}` : null;
 
+  const address = formatAddress([
+    tenant.addressLine1,
+    tenant.addressLine2,
+    tenant.city,
+    tenant.state,
+    tenant.postalCode,
+  ]);
+  const mapsUrl = buildMapsUrl(address);
+
+  function handleAddToCalendar() {
+    const ics = buildIcs({
+      uid: `${result.bookingId || shortRef || "booking"}@schedlyops`,
+      startsAt: snapshot.startsAt,
+      durationMinutes: durationMin,
+      summary: `${service?.name ?? "Appointment"} @ ${tenant.displayName}`,
+      location: address || null,
+      description: professional?.name ? `With ${professional.name}` : null,
+    });
+    const filename = shortRef ? `appointment-${shortRef}.ics` : "appointment.ics";
+    downloadIcs(ics, filename);
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto px-5 pb-4 pt-5 sm:px-7 lg:px-8">
@@ -911,6 +934,7 @@ function SuccessView({
               {durationMin > 0 && (
                 <SummaryRow label="Duration" value={`${durationMin} min`} />
               )}
+              {address && <SummaryRow label="Location" value={address} />}
               <SummaryRow label="Shop" value={tenant.displayName} />
             </dl>
             {shortRef && (
@@ -923,6 +947,28 @@ function SuccessView({
       </div>
       <div className="border-t border-border bg-card px-5 py-4 sm:px-7 lg:px-8">
         <div className="mx-auto flex w-full max-w-lg flex-col gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddToCalendar}
+              className="w-full sm:flex-1"
+            >
+              Add to calendar
+            </Button>
+            {mapsUrl && (
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                className="w-full sm:flex-1"
+              >
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer">
+                  Get directions
+                </a>
+              </Button>
+            )}
+          </div>
           {telHref && (
             <Button
               asChild

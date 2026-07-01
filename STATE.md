@@ -2,6 +2,13 @@
 
 Last updated by this change pass.
 
+## Governance
+
+Commit message source of truth: [`docs/COMMIT_CONVENTIONS.md`](docs/COMMIT_CONVENTIONS.md).
+Conventional Commits, applies to humans and agents (Lovable included).
+`develop` mirrors personal `main`; production `main` only via PR.
+
+
 ## Current snapshot (Founder Beta prep)
 
 - **Public booking page** uses the **Sand & Brass** premium visual direction

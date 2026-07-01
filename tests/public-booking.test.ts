@@ -69,6 +69,11 @@ describe("getPublicTenantProfile", () => {
       publicPhone: null,
       timezone: "UTC",
       countryCode: null,
+      addressLine1: null,
+      addressLine2: null,
+      city: null,
+      state: null,
+      postalCode: null,
     });
   });
 
